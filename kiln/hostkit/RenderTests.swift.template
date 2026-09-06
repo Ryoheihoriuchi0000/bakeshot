@@ -1,0 +1,101 @@
+import XCTest
+import SwiftUI
+import UIKit
+__IMPORTS__@testable import __MODULE__
+
+/// Kiln が生成。本物の iOS ランタイム（My Mac / Designed for iPad）で、アプリの View をそのまま画像にする。
+final class RenderTests: XCTestCase {
+
+    @MainActor
+    func testRender() throws {
+        // iOS アプリはサンドボックスの中。自分の一時領域へ書き、Kiln が回収する
+        let out = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("kiln_out").appendingPathComponent("__TOKEN__")
+        try FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
+        // 進捗をファイルに残す。落ちた／固まった View を Kiln が特定して、次の回で外せるように
+        let state = out.appendingPathComponent("STATE")
+        let logFile = out.appendingPathComponent("LOG")
+        func mark(_ text: String) {
+            try? text.write(to: state, atomically: true, encoding: .utf8)
+            if let h = try? FileHandle(forWritingTo: logFile) {
+                h.seekToEndOfFile(); h.write(Data((text + "\n").utf8)); try? h.close()
+            } else {
+                try? (text + "\n").write(to: logFile, atomically: true, encoding: .utf8)
+            }
+        }
+        mark("BEGIN")
+        let box = KilnWatchBox()
+        Thread.detachNewThread {
+            while true {
+                Thread.sleep(forTimeInterval: 1)
+                if let start = box.start, Date().timeIntervalSince(start) > 20 {
+                    try? "TIMEOUT \(box.name)".write(to: state, atomically: true, encoding: .utf8)
+                    exit(0)   // 固まった View を諦めて、他を救う
+                }
+            }
+        }
+
+        // 前の周で落ちた画面は飛ばす。**ソースは書き換えない**（書き換えると Xcode が再ビルド＆確認ダイアログを出す）
+        let skip = Set(((try? String(contentsOf: out.appendingPathComponent("SKIP"), encoding: .utf8)) ?? "")
+            .components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty })
+
+        func bake(_ name: String, dark: Bool, size sizeSpec: KilnSize = .phone,
+                  @ViewBuilder _ content: () -> some View) {
+            let base = name.replacingOccurrences(of: "_light", with: "").replacingOccurrences(of: "_dark", with: "")
+            if skip.contains(base) { return }
+            mark("STARTED \(name)"); box.name = name; box.start = Date()
+            defer { mark("DONE \(name)"); box.start = nil }
+            let size = sizeSpec.points ?? CGSize(width: __W__, height: __H__)
+            let scale: CGFloat = 3
+            let root = AnyView(content()
+                .frame(width: size.width, height: size.height)
+                .environment(\.colorScheme, dark ? .dark : .light))
+            let host = UIHostingController(rootView: root)
+            host.overrideUserInterfaceStyle = dark ? .dark : .light
+            // ノッチと Home バーぶんのセーフエリア（実機の値）。ウィジェットには要らない
+            if sizeSpec.isPhone {
+                host.additionalSafeAreaInsets = UIEdgeInsets(top: __TOP__, left: 0, bottom: __BOTTOM__, right: 0)
+            }
+            let container = UIViewController()
+            container.addChild(host)
+            container.view.addSubview(host.view)
+            container.setOverrideTraitCollection(
+                UITraitCollection(traitsFrom: [
+                    UITraitCollection(horizontalSizeClass: .compact),
+                    UITraitCollection(verticalSizeClass: .regular),
+                    UITraitCollection(displayScale: scale),
+                ]), forChild: host)
+            host.didMove(toParent: container)
+
+            let window = UIWindow(frame: CGRect(origin: .zero, size: size))
+            window.rootViewController = container
+            window.isHidden = false
+            container.view.frame = window.bounds
+            host.view.frame = window.bounds
+            host.view.setNeedsLayout(); host.view.layoutIfNeeded()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.5))
+            host.view.layoutIfNeeded()
+
+            let fmt = UIGraphicsImageRendererFormat()
+            fmt.scale = scale
+            fmt.opaque = true
+            let img = UIGraphicsImageRenderer(size: size, format: fmt).image { _ in
+                // ナビゲーションバーの題などは layer.render では出ない。画面更新込みで描く
+                host.view.drawHierarchy(in: CGRect(origin: .zero, size: size), afterScreenUpdates: true)
+            }
+            try? img.pngData()?.write(to: out.appendingPathComponent("\(name).png"))
+            window.isHidden = true
+        }
+
+        // 撮影台本（Kiln/Scenes.swift）に並んでいるぶんを、上から焼く
+        for scene in KilnScenes.scenes {
+            bake(scene.name, dark: scene.dark, size: scene.size) { scene.body() }
+        }
+        mark("FINISHED")
+    }
+}
+
+final class KilnWatchBox: @unchecked Sendable {
+    var name = ""
+    var start: Date?
+}

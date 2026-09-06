@@ -1,0 +1,28 @@
+[project]
+name = "kiln-shots"
+version = "0.1.0"
+description = "Real App Store screenshots from your Xcode project. No simulator, no UI tests."
+readme = "README.md"
+license = { text = "MIT" }
+keywords = ["ios", "screenshots", "app-store", "fastlane", "snapshot", "swiftui", "xcode"]
+classifiers = [
+  "Environment :: MacOS X",
+  "Programming Language :: Python :: 3",
+  "Topic :: Software Development :: Build Tools",
+]
+
+[project.urls]
+Homepage = "https://github.com/Ryoheihoriuchi0000/kiln"
+Issues = "https://github.com/Ryoheihoriuchi0000/kiln/issues"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+kiln = "kiln.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-data]
+kiln = ["hostkit/*"]
