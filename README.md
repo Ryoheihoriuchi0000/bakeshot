@@ -9,7 +9,7 @@ https://github.com/user-attachments/assets/6a902e87-bb5d-467f-8c55-96d89f550ac3
 
 Making the screens you want for a listing means installing the app, opening the right
 screen, getting it into the right state, placing the widget, configuring it, getting real
-data into it, then photographing the home screen and cropping.
+data into it — and only then taking the shot.
 
 | The screenshot you want | What you or your agent has to do first |
 |---|---|
