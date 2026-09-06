@@ -21,10 +21,24 @@ something missing (Xcode, the `xcodeproj` gem), fix or explain it before going o
 Open `Bakeshot/Scenes.swift`. The draft lists whatever views happened to be constructible;
 it renders them **empty**, which is useless as source material. Replace it.
 
-Before writing, read the app's models and views to learn:
-- which screens a new user would be sold by (home with data, the main list, stats, paywall)
-- the types needed to build state (`AppStore`, `Tag`, `LogEntry`, view models…)
-- what each view's initialiser requires
+**Read the source before you write a line of it.** A view that is handed nothing crashes
+while rendering, and a crash tells you almost nothing. Grepping the app first is faster and
+more reliable than baking and guessing. For every screen you intend to shoot, find out:
+
+- **what the view demands from its environment** — grep it for `@EnvironmentObject`,
+  `@Environment(SomeType.self)`, `@ObservedObject`, `@StateObject`. Every one of these has
+  to be supplied in the scene, or the render dies.
+- **how to build those objects** — their initialisers, and the model types they hold
+  (`AppStore`, `Tag`, `LogEntry`, a view model…).
+- **what the view's own initialiser requires.**
+- **what the app decides from stored settings** — a tab or a section that is switched on in
+  a preference will be *off* in the scene, because Bakeshot isolates the app's storage so it
+  never touches real data. Set those on the object you pass in.
+- **which screens a new user would be sold by** — home with data, the main list, stats,
+  the paywall.
+
+Views written against a singleton (`Theme.shared`, `UserPreferences.shared`) can usually be
+handed that singleton directly. Views that expect a network client need a stub.
 
 Then write scenes that show the app **in use**:
 
@@ -79,8 +93,11 @@ the decoration step scales it. Widgets need the full version (`bakeshot status` 
 Bakeshot names every scene it could not build or that crashed while rendering:
 
 - **"引数が要るので外しました"** — the view needs arguments. Pass them explicitly.
-- **"焼いている最中に落ちた"** — the view hit the network, keychain or a missing
-  environment object. Inject a fake, or drop that scene.
+- **"焼いている最中に落ちた"** — the render died. Almost always a missing environment
+  object; sometimes the network or the keychain. Go back to the view's source, list what it
+  reads from the environment, and supply all of it. Bakeshot cannot tell you the reason —
+  the process is gone — so read, do not guess. If it genuinely cannot be rendered offline,
+  drop that scene and say why.
 
 Fix `Bakeshot/Scenes.swift` and run `bakeshot bake` again. Repeat until the set is complete
 or a screen is genuinely un-renderable — then say so plainly.
