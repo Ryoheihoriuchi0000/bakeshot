@@ -1,7 +1,7 @@
 [project]
 name = "bakeshot"
 version = "0.1.0"
-description = "Screenshots of your real UI. No simulator. No UI tests."
+description = "Make real App Store screenshots without a simulator or a device."
 readme = "README.md"
 license = { text = "MIT" }
 keywords = ["ios", "screenshots", "app-store", "fastlane", "snapshot", "swiftui", "xcode"]
