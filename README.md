@@ -1,6 +1,6 @@
 # Bakeshot
 
-**Capture your app's real screens without a simulator or a device.**
+**Capture the same UI your users see — without a simulator or a device.**
 
 https://github.com/user-attachments/assets/6a902e87-bb5d-467f-8c55-96d89f550ac3
 
