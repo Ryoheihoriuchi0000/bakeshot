@@ -26,8 +26,7 @@ And you do all of it again next release.
 ## With Bakeshot
 
 You describe the state in code; Bakeshot builds your app, runs it on your Mac as a real iOS
-binary, and draws the view. A month of history is four lines. The paid tier is one
-initialiser. Five languages is one flag.
+binary, and draws the view.
 
 ```swift
 shotBoth("home") { HomeView().environmentObject(thirtyDaysOfHistory()) }
