@@ -1,6 +1,7 @@
 # Bakeshot
 
-**Real App Store screenshots from your Xcode project. No simulator. No UI tests.**
+**App Store screenshots of your real UI — in states your app has never actually been in.**
+No simulator. No UI tests.
 
 https://github.com/user-attachments/assets/6a902e87-bb5d-467f-8c55-96d89f550ac3
 
@@ -33,20 +34,40 @@ PNGs land in `Bakeshot/out/<locale>/`, at real store dimensions.
 ## What it does
 
 Bakeshot builds your iOS app, runs it on your Mac as a real iOS binary, and renders your
-actual SwiftUI views — every screen, every language, light and dark, widgets included.
+actual SwiftUI views — **in whatever state you ask for.**
+
+That last part is the point. To photograph a screen the usual way, the app has to *actually
+be* in that state:
+
+| The screenshot you want | What it costs you today |
+|---|---|
+| Home screen with a month of history | Wait a month, or type it all in |
+| A seven-day streak | You cannot. Come back in a week |
+| The paid tier | Buy it, or wire up a sandbox account |
+| The empty state, the error state | Break the app on purpose |
+| The same shots in five languages | Switch the device language and shoot everything again |
+| A widget | Install the app, place the widget, configure it, get data into it, photograph the home screen, crop |
+
+Bakeshot builds the state in code and draws the view directly. A month of history is four
+lines. The paid tier is one initialiser. Five languages is one flag.
+
+```swift
+shotBoth("home") { HomeView().environmentObject(thirtyDaysOfHistory()) }
+shot("paywall", dark: true) { PlusSheet().environmentObject(PlusStore(active: true)) }
+```
 
 It does not decorate. Backgrounds, captions and device frames are somebody else's job
 (try [app-store-screenshots](https://github.com/ParthJadhav/app-store-screenshots)).
-Bakeshot only does the part nobody has automated: **capturing the real UI**.
+Bakeshot does the part nobody has automated: **the real UI, in the state that sells it.**
 
-## Why
+## Why not fastlane snapshot
 
-`fastlane snapshot` works, but you have to write UI tests, keep them alive, and boot
-simulators. Most people give up and take screenshots by hand — then do it again next
-release, times every language, times every device size.
+`fastlane snapshot` drives a simulator through UI tests. It can only photograph states your
+app can reach by tapping — and you write and maintain the taps. Getting to "thirty days of
+history, paid tier, in German" means seeding a database, signing in, and switching the
+device language, every release.
 
-There is no simulator and no UI test here. Your views are rendered directly, from your
-real code, with the state you asked for.
+Bakeshot does not tap anything. It constructs the state and renders the view.
 
 ## The scene script
 
@@ -105,12 +126,13 @@ when the run ends — including when the run fails. Nothing is left behind.
 
 ## Price
 
-Everything you see above is free: every screen, every language, every device size.
+Everything above is free: every screen, every state, every language, every device size.
 
-**Widgets are the paid part.** You can screenshot an app screen by hand if you have to.
-You cannot really screenshot a widget — you have to install the app, place the widget,
-configure it, get real data into it, photograph the home screen and crop. Bakeshot renders
-it directly, in the state you asked for, at the exact store size.
+**Widgets are the paid part** — the one screenshot you genuinely cannot take by hand.
+An app screen you can at least reach by tapping. A widget means installing the app,
+placing the widget, configuring it, getting real data into it, photographing the home
+screen and cropping. Bakeshot renders it directly, in the state you asked for, at the
+exact store size.
 
 | | |
 |---|---|

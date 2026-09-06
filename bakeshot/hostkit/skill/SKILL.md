@@ -55,11 +55,15 @@ Rules:
 - Keep the trailing `.flatMap { $0 }`; wrap lone `shot(...)` calls as `[shot(...)]` when mixing.
 - Widgets need an explicit size: `.widgetSmall` / `.widgetMedium` / `.widgetLarge` /
   `.widgetExtraLarge`. Build the entry the way the app's `TimelineProvider` does.
+  **Widgets require the full version.** Run `bakeshot status` first — if it says 公開版,
+  leave widgets out of the script and tell the user they are a paid feature.
 - Use `Bakeshot.L(ja, en)` when demo data itself should differ per language.
 - Never edit the app's own source to make a scene work. Everything belongs in this file.
 
-Data quality is the job. A few days of history, a streak in progress, a chart with shape,
-realistic names. An empty screen is a wasted screenshot.
+**Choosing the state is the job.** The reason Bakeshot exists is that these states are
+otherwise expensive to reach: a month of history, a streak in progress, the paid tier
+active, a chart with shape, an inbox with unread items. Pick the states that sell the app,
+then build them here. An empty screen is a wasted screenshot.
 
 ## 3. Bake
 

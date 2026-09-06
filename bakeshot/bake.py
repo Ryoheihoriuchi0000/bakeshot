@@ -80,6 +80,14 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
     api_file.write_text((KIT / "BakeshotSceneAPI.swift.template").read_text(encoding="utf-8"), encoding="utf-8")
 
     log(f"台本にある {len(names)} 枚を焼きます（{locale} / {device}\"）")
+    # ウィジェットは公開版に処理が無い。台本に混ざっていると、
+    # ウィジェットの型が見つからずビルドごと落ちる。**先に、はっきり止める。**
+    if not features.pro() and ".widget" in scenes_file.read_text(encoding="utf-8"):
+        raise SystemExit(
+            "台本にウィジェットがあります。ウィジェットは完全版の機能です。\n"
+            f"  買う:   {'https://bakeshot.lemonsqueezy.com'}\n"
+            "  今すぐ焼くなら: Bakeshot/Scenes.swift から size: .widget… の行と、\n"
+            "  そこで使っている下ごしらえを消してください（アプリの画面だけになります）。")
 
     # 1) xcodeproj を複製してテストターゲットを足す
     # 使い捨ての写し。**君のプロジェクトには一切書き込まない。**
