@@ -23,6 +23,14 @@ final class RenderTests: XCTestCase {
                 try? (text + "\n").write(to: logFile, atomically: true, encoding: .utf8)
             }
         }
+        // 落ちた理由を残す。SwiftUI の環境オブジェクト不足などは fatalError で、
+        // メッセージが stderr に出てからプロセスが死ぬ。先に stderr をファイルへ向けておく
+        let errFile = out.appendingPathComponent("STDERR")
+        try? FileManager.default.removeItem(at: errFile)
+        FileManager.default.createFile(atPath: errFile.path, contents: nil)
+        setvbuf(stderr, nil, _IONBF, 0)
+        freopen(errFile.path, "a+", stderr)
+
         mark("BEGIN")
         let box = BakeshotWatchBox()
         Thread.detachNewThread {

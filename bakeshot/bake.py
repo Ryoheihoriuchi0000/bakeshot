@@ -26,6 +26,30 @@ def used_widgets() -> bool:
     return _used_widgets
 
 
+# fatalError などのメッセージは stderr に出てからプロセスが死ぬ。描画側がそれをファイルに残す
+_NOISE = ("<unknown>", "CoreSimulator", "nw_", "objc[", "Metal", "AVF ", "Could not create")
+
+
+def crash_reason(box) -> str:
+    """落ちた理由を1〜2行で。何も無ければ空。"""
+    if not box:
+        return ""
+    f = box / "STDERR"
+    if not f.exists():
+        return ""
+    try:
+        text = f.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return ""
+    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    keep = [l for l in lines if not any(n in l for n in _NOISE)]
+    fatal = [i for i, l in enumerate(keep) if "Fatal error" in l or "Precondition failed" in l]
+    if fatal:
+        i = fatal[-1]
+        return " ".join(keep[i:i + 2])[:300]
+    return keep[-1][:300] if keep else ""
+
+
 def find_out_dir(token: str):
     """アプリのサンドボックスにある受け皿。コンテナは走るまで決まらない。"""
     for c in CONTAINERS.iterdir() if CONTAINERS.is_dir() else []:
@@ -178,7 +202,7 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
                 else f"残り {len(remaining)} 枚でもう一周（{rounds} 回目）")
             box = find_out_dir(token)
             if box:
-                for f in ("STATE", "LOG"):
+                for f in ("STATE", "LOG", "STDERR"):
                     (box / f).unlink(missing_ok=True)
                 # 落ちた絵は飛ばす。ソースではなくこのファイルで伝える（再ビルドを起こさない）
                 # 撮影側は _light / _dark を落とした名前で見ている。合わせないと素通りする
@@ -225,8 +249,10 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
             if len(parts) == 2 and parts[0] in ("STARTED", "TIMEOUT") and parts[1] in remaining:
                 remaining.remove(parts[1])
                 failed.append(parts[1])
+                why = crash_reason(box)
                 log(f"✗ {parts[1]} は焼いている最中に"
-                    f"{'固まった' if parts[0] == 'TIMEOUT' else '落ちた'}ので外しました", "!")
+                    f"{'固まった' if parts[0] == 'TIMEOUT' else '落ちた'}ので外しました"
+                    + (f"\n   {why}" if why else ""), "!")
             elif not last and not done:
                 raise SystemExit(f"Xcode でテストが動きませんでした（{rounds} 回目）"
                              "  うまくいかない時は、Xcode を一度終了してからやり直してください。")
