@@ -26,6 +26,34 @@ def used_widgets() -> bool:
     return _used_widgets
 
 
+def error_lines(out: str):
+    """ビルド出力からコンパイルエラーの行だけ。"""
+    return [l for l in out.splitlines() if ": error:" in l]
+
+
+def failing_shot_lines(errs, lines):
+    """エラーの出た行のうち、**撮影行だけ**を返す。
+
+    撮影行以外を消すと土台のコードが壊れ、無関係な構文エラーだらけになって
+    本当の原因が見えなくなる。実際にそうなっていたので、ここは厳しくする。
+    戻り値は [(行番号1始まり, 画面の名前)]。"""
+    nums = {int(m.group(1)) for l in errs
+            for m in [re.search(r"RenderTests\.swift:(\d+):", l)] if m}
+    found = []
+    for n in sorted(nums, reverse=True):
+        if n - 1 >= len(lines):
+            continue
+        m = re.search(r'bake\("([^"]+?)(?:_light|_dark)?"', lines[n - 1])
+        if m:
+            found.append((n, m.group(1)))
+    return found
+
+
+def skip_names(names):
+    """撮影側は _light / _dark を落とした名前で照合する。合わせないと素通りする。"""
+    return sorted({re.sub(r"_(light|dark)$", "", n) for n in names})
+
+
 # fatalError などのメッセージは stderr に出てからプロセスが死ぬ。描画側がそれをファイルに残す
 _NOISE = ("<unknown>", "CoreSimulator", "nw_", "objc[", "Metal", "AVF ", "Could not create")
 
@@ -157,31 +185,20 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
         code, out = xcode.build_for_testing(dst, dest_id, derived)
         if code == 0:
             break
-        errs = [l for l in out.splitlines() if ": error:" in l]
-        bad = {int(m.group(1)) for l in errs
-               for m in [re.search(r"RenderTests\.swift:(\d+):", l)] if m}
-        if not bad or attempt == 4:
+        errs = error_lines(out)
+        lines = test_file.read_text(encoding="utf-8").splitlines()
+        hits = failing_shot_lines(errs, lines)
+        if not hits or attempt == 4:
             why = " / ".join(re.sub(r"^.*?: error: ", "", l) for l in errs[:4])
             if not keep:
                 shutil.rmtree(dst, ignore_errors=True)
             raise SystemExit(f"ビルドに失敗しました:\n{why or out[-600:]}")
-        lines = test_file.read_text(encoding="utf-8").splitlines()
         dropped = []
-        for n in sorted(bad, reverse=True):
-            if n - 1 >= len(lines):
-                continue
-            m = re.search(r'bake\("([^"]+?)(?:_light|_dark)?"', lines[n - 1])
-            if not m:
-                continue          # 撮影行以外は消さない。消すと土台が壊れて原因が見えなくなる
-            if m.group(1) not in pruned:
-                pruned.append(m.group(1))
-            dropped.append(m.group(1))
+        for n, name in hits:
+            if name not in pruned:
+                pruned.append(name)
+            dropped.append(name)
             lines[n - 1] = ""
-        if not dropped:
-            why = " / ".join(re.sub(r"^.*?: error: ", "", l) for l in errs[:4])
-            if not keep:
-                shutil.rmtree(dst, ignore_errors=True)
-            raise SystemExit("ビルドに失敗しました:\n" + (why or out[-600:]))
         test_file.write_text("\n".join(lines), encoding="utf-8")
         log(f"コンパイルが通らないので外しました: {', '.join(dropped)}", "!")
         for e in errs[:4]:
@@ -206,7 +223,7 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
                     (box / f).unlink(missing_ok=True)
                 # 落ちた絵は飛ばす。ソースではなくこのファイルで伝える（再ビルドを起こさない）
                 # 撮影側は _light / _dark を落とした名前で見ている。合わせないと素通りする
-                skips = sorted({re.sub(r"_(light|dark)$", "", n) for n in failed + pruned})
+                skips = skip_names(failed + pruned)
                 (box / "SKIP").write_text("\n".join(skips), encoding="utf-8")
             code, out = xcode.osascript([start_s, str(dst), "BakeshotRender"])
             if "not loaded" in out:

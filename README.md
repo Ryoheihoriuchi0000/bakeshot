@@ -1,5 +1,7 @@
 # Bakeshot
 
+[![PyPI](https://img.shields.io/pypi/v/bakeshot)](https://pypi.org/project/bakeshot/)
+
 **Capture the same UI your users see — without a simulator or a device.**
 
 https://github.com/user-attachments/assets/6a902e87-bb5d-467f-8c55-96d89f550ac3
@@ -42,7 +44,7 @@ Bakeshot does the part nobody has automated: **the real UI, in the state that se
 ## Use it
 
 ```bash
-pip install git+https://github.com/Ryoheihoriuchi0000/bakeshot
+pip install bakeshot
 cd MyApp
 bakeshot init
 ```
