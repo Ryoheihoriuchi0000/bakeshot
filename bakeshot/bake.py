@@ -19,6 +19,13 @@ def log(msg, kind="·"):
     print(f"{kind} {msg}", flush=True)
 
 
+_used_widgets = False
+
+
+def used_widgets() -> bool:
+    return _used_widgets
+
+
 def find_out_dir(token: str):
     """アプリのサンドボックスにある受け皿。コンテナは走るまで決まらない。"""
     for c in CONTAINERS.iterdir() if CONTAINERS.is_dir() else []:
@@ -57,13 +64,16 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
          strip_ent: bool = False, team: str = "", keep: bool = False):
     features.pro()          # 完全版が入っていれば端末とウィジェットが増える
     module = app_target.replace("-", "_")
+    # Swift の識別子にならない名前（protoc-gen-swift のようなハイフン入り）は import できない
+    _ok = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
     imports = "".join(f"#if canImport({m})\nimport {m}\n#endif\n"
-                      for m in sorted(scenes_mod.local_package_modules(root)))
+                      for m in sorted(scenes_mod.local_package_modules(root)) if _ok.match(m))
     scenes_file = ensure_scenes(root, module, imports)
     names = scenes_mod.names(scenes_file.read_text(encoding="utf-8"))
     if not names:
         raise SystemExit("台本に絵がありません。Bakeshot/Scenes.swift に shot / shotBoth を書いてください。")
 
+    global _used_widgets
     token = uuid.uuid4().hex[:8]
     work = root / "Bakeshot" / ".work"
     shutil.rmtree(work, ignore_errors=True)
@@ -82,7 +92,9 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
     log(f"台本にある {len(names)} 枚を焼きます（{locale} / {device}\"）")
     # ウィジェットは公開版に処理が無い。台本に混ざっていると、
     # ウィジェットの型が見つからずビルドごと落ちる。**先に、はっきり止める。**
-    if not features.pro() and ".widget" in scenes_file.read_text(encoding="utf-8"):
+    if ".widget" in scenes_file.read_text(encoding="utf-8"):
+        _used_widgets = True
+    if not features.pro() and _used_widgets:
         raise SystemExit(
             "台本にウィジェットがあります。ウィジェットは完全版の機能です。\n"
             f"  買う:   {'https://bakeshot.lemonsqueezy.com'}\n"

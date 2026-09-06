@@ -4,7 +4,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import __version__, bake as bake_mod, devices, doctor as doctor_mod, features, license as license_mod, scenes as scenes_mod
+from . import __version__, bake as bake_mod, devices, doctor as doctor_mod, features, license as license_mod, scenes as scenes_mod, usage as usage_mod
 
 
 def find_project(root: Path):
@@ -83,11 +83,25 @@ def cmd_bake(args):
                                    team=args.team or cfg.get("team", ""),
                                    keep=args.keep_project)
     print(f"\n合計 {total} 枚")
+    if total:
+        usage_mod.send(shots=total, locales=len(locales),
+                       widgets=bake_mod.used_widgets())
 
 
 def cmd_activate(args):
     name = license_mod.activate(args.key.strip())
     print(f"{name} を有効にしました。ありがとうございます。")
+
+
+def cmd_usage(args):
+    if args.switch == "off":
+        usage_mod.set_enabled(False)
+        print("回数の送信を止めました。")
+    elif args.switch == "on":
+        usage_mod.set_enabled(True)
+        print("回数の送信を入れました。送るのは日付と枚数だけです。")
+    else:
+        print(f"回数の送信: {usage_mod.state()}")
 
 
 def cmd_status(args):
@@ -130,6 +144,10 @@ def main(argv=None):
     a = sub.add_parser("activate", help="買った鍵を入れる")
     a.add_argument("key")
     a.set_defaults(func=cmd_activate)
+
+    u = sub.add_parser("usage", help="焼いた回数を送るかどうか")
+    u.add_argument("switch", nargs="?", choices=["on", "off"])
+    u.set_defaults(func=cmd_usage)
 
     st = sub.add_parser("status", help="お試しの残りとライセンスの状態")
     st.set_defaults(func=cmd_status)

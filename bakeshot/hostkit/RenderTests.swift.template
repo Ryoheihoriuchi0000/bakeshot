@@ -45,9 +45,12 @@ final class RenderTests: XCTestCase {
             if skip.contains(base) { return }
             mark("STARTED \(name)"); box.name = name; box.start = Date()
             defer { mark("DONE \(name)"); box.start = nil }
+            // 撮る瞬間にアニメーションが走っていると、タブの選択枠やシートが動く途中で写る
+            UIView.setAnimationsEnabled(false)
             let size = sizeSpec.points ?? CGSize(width: __W__, height: __H__)
             let scale: CGFloat = 3
             let root = AnyView(content()
+                .transaction { $0.animation = nil }
                 .frame(width: size.width, height: size.height)
                 .environment(\.colorScheme, dark ? .dark : .light))
             let host = UIHostingController(rootView: root)
