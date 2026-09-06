@@ -50,19 +50,40 @@ def guess_views(root: Path, limit: int = 8):
     return found
 
 
+_TARGET = re.compile(r"\.(?:target|executableTarget|binaryTarget)\(\s*name:\s*\"([A-Za-z_][A-Za-z0-9_]*)\"")
+_IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+def module_name(target: str) -> str:
+    """Xcode の既定のモジュール名。識別子に使えない字は _ に置き換わる（"Food Truck" → Food_Truck）。"""
+    name = re.sub(r"[^A-Za-z0-9_]", "_", target)
+    return "_" + name if name[:1].isdigit() else name
+
+
 def local_package_modules(root: Path):
     """ローカル SPM パッケージのモジュール名。
-    アプリのモジュールを import しただけでは、そこの型（Theme / RouterPath 等）が見えない。"""
+    アプリのモジュールを import しただけでは、そこの型（Theme / RouterPath 等）が見えない。
+
+    Package.swift のターゲット名を読む。Sources/ 直下のフォルダ名を拾うと、
+    モジュールではなく中の区分（Model / Assets.xcassets 等）まで import してしまう。"""
     out = set()
     for pkg in root.rglob("Package.swift"):
         if any(part in {".git", "DerivedData", ".build", "build"} for part in pkg.parts):
             continue
-        src = pkg.parent / "Sources"
+        try:
+            text = pkg.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        names = set(_TARGET.findall(text))
+        if names:
+            out |= names
+            continue
+        src = pkg.parent / "Sources"     # 読めなかったときだけ、フォルダ名で当てる
         if src.is_dir():
             for m in src.iterdir():
                 if m.is_dir() and not m.name.startswith("."):
                     out.add(m.name)
-    return out
+    return {m for m in out if _IDENT.match(m)}
 
 
 def draft(module: str, imports: str, views):

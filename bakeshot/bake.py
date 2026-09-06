@@ -63,7 +63,7 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
          out_root: Path, bundle_id: str = "", strip_ext: bool = True,
          strip_ent: bool = False, team: str = "", keep: bool = False):
     features.pro()          # 完全版が入っていれば端末とウィジェットが増える
-    module = app_target.replace("-", "_")
+    module = scenes_mod.module_name(app_target)
     # Swift の識別子にならない名前（protoc-gen-swift のようなハイフン入り）は import できない
     _ok = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
     imports = "".join(f"#if canImport({m})\nimport {m}\n#endif\n"

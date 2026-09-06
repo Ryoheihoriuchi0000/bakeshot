@@ -46,7 +46,7 @@ def cmd_init(args):
                 "locales": cfg.get("locales", ["ja"]),
                 "devices": cfg.get("devices", [devices.DEFAULT])})
     save_config(root, cfg)
-    module = target.replace("-", "_")
+    module = scenes_mod.module_name(target)
     imports = "".join(f"#if canImport({m})\nimport {m}\n#endif\n"
                       for m in sorted(scenes_mod.local_package_modules(root)))
     if not doctor_mod.report(root, quiet_when_ok=True):

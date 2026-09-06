@@ -4,6 +4,9 @@
 on run argv
     set projPath to item 1 of argv
     set schemeName to item 2 of argv
+    set AppleScript's text item delimiters to "/"
+    set projName to last text item of projPath
+    set AppleScript's text item delimiters to ""
     tell application "Xcode"
         open projPath
         set ws to missing value
@@ -11,7 +14,13 @@ on run argv
         -- パッケージが多いと開き切るまで数分。`loaded` は解決中 false のままなので、スキームが見えたら可とする
         repeat 450 times
             try
-                set ws to first workspace document whose path is projPath
+                try
+                    set ws to first workspace document whose path is projPath
+                on error
+                    -- /tmp と /private/tmp のように、Xcode が返す path が渡した文字列と
+                    -- 一致しないことがある。名前で拾い直す
+                    set ws to first workspace document whose name is projName
+                end try
                 if loaded of ws then
                     set isReady to true
                     exit repeat
