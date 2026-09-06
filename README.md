@@ -1,8 +1,6 @@
 # Bakeshot
 
-**App Store screenshots of your real UI — in states your app has never actually been in.**
-
-No simulator. No UI tests.
+**Screenshots of your real UI.**
 
 https://github.com/user-attachments/assets/6a902e87-bb5d-467f-8c55-96d89f550ac3
 
