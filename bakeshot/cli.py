@@ -28,7 +28,7 @@ def save_config(root: Path, cfg):
 NEXT_STEPS = """
 用意できました。あとはエージェント（Claude Code / Cursor など）にこう言ってください。
 
-  App Store 用のスクショを作って
+  Bakeshot で App Store 用のスクショを作って
 
 スキルを .claude/skills/bakeshot/ に置いたので、エージェントが台本を書いて焼くところまで
 やります。Cursor など Claude Code 以外を使っているなら、代わりにこう言ってください。

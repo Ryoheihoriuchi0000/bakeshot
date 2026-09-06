@@ -15,7 +15,8 @@ bakeshot init
 
 Then tell your coding agent:
 
-> **App Store 用のスクショを作って** — or, in English, *"make the App Store screenshots"*
+> **Bakeshot で App Store 用のスクショを作って**
+> — or, in English, *"make the App Store screenshots with Bakeshot"*
 
 `init` installs a skill into `.claude/skills/bakeshot/`, so the agent reads your models and
 views, writes the scene script, runs the render, fixes whatever crashed, and tells you where
