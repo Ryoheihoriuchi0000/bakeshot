@@ -68,15 +68,6 @@ Or drive it yourself: edit `Bakeshot/Scenes.swift`, then `bakeshot bake --locale
 
 PNGs land in `Bakeshot/out/<locale>/`, at real store dimensions.
 
-## Why not fastlane snapshot
-
-`fastlane snapshot` drives a simulator through UI tests. It can only photograph states your
-app can reach by tapping — and you write and maintain the taps. Getting to "thirty days of
-history, paid tier, in German" means seeding a database, signing in, and switching the
-device language, every release.
-
-Bakeshot does not tap anything. It constructs the state and renders the view.
-
 ## The scene script
 
 `Bakeshot/Scenes.swift` is where you say what to shoot and in what state. It is plain
