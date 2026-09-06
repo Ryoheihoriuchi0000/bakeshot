@@ -73,6 +73,10 @@ Rules:
   leave widgets out of the script and tell the user they are a paid feature.
 - Use `Bakeshot.L(ja, en)` when demo data itself should differ per language.
 - Never edit the app's own source to make a scene work. Everything belongs in this file.
+- Never call a save, a sync or anything else that persists. The copy is built without
+  entitlements so it cannot reach the real store, but a scene that writes to
+  `UserDefaults.standard` still lands in the app's own preferences. Build state in memory
+  and hand it to the view.
 
 **Choosing the state is the job.** The reason Bakeshot exists is that these states are
 otherwise expensive to reach: a month of history, a streak in progress, the paid tier

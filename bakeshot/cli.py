@@ -79,7 +79,10 @@ def cmd_bake(args):
             total += bake_mod.bake(root, project, target, loc, dev, sub,
                                    bundle_id=args.bundle_id or cfg.get("bundleId", ""),
                                    strip_ext=not args.keep_extensions,
-                                   strip_ent=args.strip_entitlements or cfg.get("stripEntitlements", False),
+                                   # 既定で剥がす。残すと複製が本物の App Group を開き、
+                                   # 台本が保存や同期を通った瞬間に実データを書き換える
+                                   strip_ent=not (args.keep_entitlements
+                                                  or cfg.get("keepEntitlements", False)),
                                    team=args.team or cfg.get("team", ""),
                                    keep=args.keep_project)
     print(f"\n合計 {total} 枚")
@@ -136,7 +139,8 @@ def main(argv=None):
     b.add_argument("--out", help="書き出し先（既定: Bakeshot/out）")
     b.add_argument("--bundle-id", help="bundle id を差し替える（他人のプロジェクト用）")
     b.add_argument("--team", help="署名するチーム ID")
-    b.add_argument("--strip-entitlements", action="store_true", help="entitlements を剥がす")
+    b.add_argument("--keep-entitlements", action="store_true",
+                   help="entitlements を複製に残す（既定は剥がす。App Group 越しに実データへ届くため）")
     b.add_argument("--keep-extensions", action="store_true", help="拡張ターゲットを複製に残す")
     b.add_argument("--keep-project", action="store_true", help="作った *-Bakeshot.xcodeproj を消さない")
     b.set_defaults(func=cmd_bake)

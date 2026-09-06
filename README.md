@@ -149,6 +149,17 @@ Xcode breaks this kind of tool roughly once a year — that is what the renewal 
 - Widget sources are compiled into the test bundle, so a widget that depends on the
   extension's own asset catalog may render without those images.
 
+## Your data
+
+The throwaway copy is built **without the app's entitlements**. That is deliberate: with them
+in place the copy opens the real App Group, and a scene script that happens to run a save or a
+sync path would write your live data — and, if the app syncs, push it to your other devices.
+Screenshots do not need the real store; the scene hands the views their state instead.
+
+If an app truly cannot launch without its entitlements, `--keep-entitlements` puts them back.
+Do that only when the scene script touches nothing that persists.
+
 ## License
+
 
 MIT
