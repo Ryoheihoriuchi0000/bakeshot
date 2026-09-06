@@ -4,7 +4,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import __version__, bake as bake_mod, devices, doctor as doctor_mod, scenes as scenes_mod
+from . import __version__, bake as bake_mod, devices, doctor as doctor_mod, license as license_mod, scenes as scenes_mod
 
 
 def find_project(root: Path):
@@ -65,6 +65,7 @@ def cmd_bake(args):
     # 足りないものは、時間を使う前に言う
     if not doctor_mod.report(root, quiet_when_ok=True):
         raise SystemExit(1)
+    license_mod.check_or_exit()
     cfg = load_config(root)
     project = root / cfg["project"] if cfg.get("project") else find_project(root)
     target = args.target or cfg.get("target") or project.stem
@@ -82,6 +83,15 @@ def cmd_bake(args):
                                    team=args.team or cfg.get("team", ""),
                                    keep=args.keep_project)
     print(f"\n合計 {total} 枚")
+
+
+def cmd_activate(args):
+    name = license_mod.activate(args.key.strip())
+    print(f"{name} を有効にしました。ありがとうございます。")
+
+
+def cmd_status(args):
+    print(license_mod.status())
 
 
 def main(argv=None):
@@ -111,6 +121,13 @@ def main(argv=None):
     b.add_argument("--keep-extensions", action="store_true", help="拡張ターゲットを複製に残す")
     b.add_argument("--keep-project", action="store_true", help="作った *-Bakeshot.xcodeproj を消さない")
     b.set_defaults(func=cmd_bake)
+
+    a = sub.add_parser("activate", help="買った鍵を入れる")
+    a.add_argument("key")
+    a.set_defaults(func=cmd_activate)
+
+    st = sub.add_parser("status", help="お試しの残りとライセンスの状態")
+    st.set_defaults(func=cmd_status)
 
     args = p.parse_args(argv)
     try:

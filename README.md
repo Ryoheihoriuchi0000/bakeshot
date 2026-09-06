@@ -91,6 +91,19 @@ An empty app makes a worthless screenshot. The state is the product.
 
 `--device 6.9` (default, 1320×2868), `6.7`, `6.5`, `6.3`. Repeat the flag for several.
 
+## Price
+
+Three days of use are free — days you actually run `bake`, not calendar days.
+After that, `bakeshot activate <key>` unlocks it.
+
+| | |
+|---|---|
+| Solo | **$49 / year** — the version you paid for keeps working forever; renewing buys the next year of updates |
+| Team / agency | **$199 / year** — several projects, CI |
+| Launch offer | **$99 once**, first 100 buyers |
+
+Xcode breaks this kind of tool roughly once a year. That is what the renewal pays for.
+
 ## Known limits
 
 - Xcode is driven while baking, so you cannot use Xcode during a run.
