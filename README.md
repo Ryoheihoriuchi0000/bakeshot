@@ -32,13 +32,11 @@ Or drive it yourself: edit `Bakeshot/Scenes.swift`, then `bakeshot bake --locale
 
 PNGs land in `Bakeshot/out/<locale>/`, at real store dimensions.
 
-## What it does
+## Without Bakeshot
 
-Bakeshot builds your iOS app, runs it on your Mac as a real iOS binary, and renders your
-actual SwiftUI views — **in whatever state you ask for.**
-
-That last part is the point. To photograph a screen the usual way, the app has to *actually
-be* in that state — so you, or the agent you asked, has to put it there first:
+A store screenshot is only worth taking if the app is showing something good. But to
+photograph a screen, the app has to *actually be* in that state — so you, or the agent you
+asked, has to put it there first:
 
 | The screenshot you want | What you or your agent has to do first |
 |---|---|
@@ -50,13 +48,21 @@ be* in that state — so you, or the agent you asked, has to put it there first:
 | The same shots in five languages | Change the device language and take every shot again, five times |
 | A widget | Install the app, add the widget, configure it, get data into it, then photograph the home screen and crop |
 
-Bakeshot builds the state in code and draws the view directly. A month of history is four
-lines. The paid tier is one initialiser. Five languages is one flag.
+And you do all of it again next release.
+
+## With Bakeshot
+
+You describe the state in code; Bakeshot builds your app, runs it on your Mac as a real iOS
+binary, and draws the view. A month of history is four lines. The paid tier is one
+initialiser. Five languages is one flag.
 
 ```swift
 shotBoth("home") { HomeView().environmentObject(thirtyDaysOfHistory()) }
 shot("paywall", dark: true) { PlusSheet().environmentObject(PlusStore(active: true)) }
 ```
+
+Nothing is simulated or mocked up: these are your real views, your real fonts and assets,
+rendered by iOS. The app never has to reach the state — the state is handed to it.
 
 It does not decorate. Backgrounds, captions and device frames are somebody else's job
 (try [app-store-screenshots](https://github.com/ParthJadhav/app-store-screenshots)).
