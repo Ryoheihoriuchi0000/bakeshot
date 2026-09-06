@@ -130,14 +130,21 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
                 shutil.rmtree(dst, ignore_errors=True)
             raise SystemExit(f"ビルドに失敗しました:\n{why or out[-600:]}")
         lines = test_file.read_text(encoding="utf-8").splitlines()
+        dropped = []
         for n in sorted(bad, reverse=True):
             if n - 1 < len(lines):
                 m = re.search(r'bake\("([^"]+?)(?:_light|_dark)?"', lines[n - 1])
-                if m and m.group(1) not in pruned:
-                    pruned.append(m.group(1))
+                if m:
+                    if m.group(1) not in pruned:
+                        pruned.append(m.group(1))
+                    dropped.append(m.group(1))
+                else:
+                    dropped.append(lines[n - 1].strip()[:60] or f"{n} 行目")
                 lines[n - 1] = ""
         test_file.write_text("\n".join(lines), encoding="utf-8")
-        log(f"引数が要るので外しました: {', '.join(pruned)}", "!")
+        log(f"コンパイルが通らないので外しました: {', '.join(dropped)}", "!")
+        for e in errs[:4]:
+            log(re.sub(r"^.*?: error: ", "", e), " ")
 
     # 3) Xcode に走らせ、進捗ファイルで打ち切る。
     #    落ちる View があるとテストの完了が返ってこないので、Xcode の完了は当てにしない。

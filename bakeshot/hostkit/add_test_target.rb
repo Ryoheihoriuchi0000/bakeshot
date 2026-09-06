@@ -37,9 +37,19 @@ test.add_dependency(app)
 
 # 拡張（ウィジェット・通知・共有）はスクショに要らない。署名の手間と失敗の元なので複製から外す
 if strip_ext == '1'
+  # iOS 以外を向いたターゲット（Mac 版・watch 版のアプリ）も外す。残すとスキームの
+  # buildable が iOS と macOS/watchOS にまたがり、対応プラットフォームが空になる
+  ios_ok = lambda do |t|
+    next true unless t.respond_to?(:build_configurations)
+    v = t.build_configurations.map { |c|
+      "#{c.build_settings['SDKROOT']} #{c.build_settings['SUPPORTED_PLATFORMS']}"
+    }.join(' ').strip
+    v.empty? || v.include?('iphoneos') || v.include?('auto')
+  end
   removed = proj.targets.select do |t|
-    t != app && t != test && t.respond_to?(:product_type) &&
-      !t.product_type.to_s.start_with?('com.apple.product-type.application')
+    next false if t == app || t == test
+    next true unless t.respond_to?(:product_type)
+    !t.product_type.to_s.start_with?('com.apple.product-type.application') || !ios_ok.call(t)
   end
   removed_refs = removed.map { |t| t.product_reference }.compact
   app.dependencies.dup.each { |d| d.remove_from_project if d.target && removed.include?(d.target) }
@@ -111,6 +121,11 @@ proj.targets.each do |t|
   end
 end
 proj.save
+
+# 元のスキームは持ち込まない。消したターゲット（Mac 版・watch 版・拡張）のスキームが残ると、
+# Xcode がそれを選んで「有効な実行先が無い」と言い、テストが始まらない
+Dir.glob(File.join(dst, 'xcshareddata', 'xcschemes', '*.xcscheme')).each { |f| File.delete(f) }
+FileUtils.rm_rf(File.join(dst, 'xcuserdata'))
 
 scheme = Xcodeproj::XCScheme.new
 scheme.add_build_target(app)
