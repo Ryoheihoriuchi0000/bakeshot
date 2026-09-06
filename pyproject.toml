@@ -11,11 +11,12 @@ classifiers = [
   "Topic :: Software Development :: Build Tools",
 ]
 
+requires-python = ">=3.9"
+dependencies = []
+
 [project.urls]
 Homepage = "https://github.com/Ryoheihoriuchi0000/bakeshot"
 Issues = "https://github.com/Ryoheihoriuchi0000/bakeshot/issues"
-requires-python = ">=3.9"
-dependencies = []
 
 [project.scripts]
 bakeshot = "bakeshot.cli:main"
@@ -23,6 +24,9 @@ bakeshot = "bakeshot.cli:main"
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["bakeshot*"]
 
 [tool.setuptools.package-data]
 bakeshot = ["hostkit/*", "hostkit/skill/*"]

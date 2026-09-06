@@ -42,15 +42,15 @@ Bakeshot does the part nobody has automated: **the real UI, in the state that se
 ## Use it
 
 ```bash
-pip install bakeshot
+pip install git+https://github.com/Ryoheihoriuchi0000/bakeshot
 cd MyApp
 bakeshot init
 ```
 
 Then tell your coding agent:
 
-> **Bakeshot でストア用の画面素材を撮って**
-> — or, in English, *"capture the screens for the store listing with Bakeshot"*
+> **Bakeshot を使って App Store Connect 用のプロモーション画像を作成して**
+> — or, in English, *"use Bakeshot to create the promotional images for App Store Connect"*
 
 `init` installs a skill into `.claude/skills/bakeshot/`, so the agent reads your models and
 views, writes the scene script, runs the render, fixes whatever crashed, and tells you where
