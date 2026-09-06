@@ -144,15 +144,20 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
         lines = test_file.read_text(encoding="utf-8").splitlines()
         dropped = []
         for n in sorted(bad, reverse=True):
-            if n - 1 < len(lines):
-                m = re.search(r'bake\("([^"]+?)(?:_light|_dark)?"', lines[n - 1])
-                if m:
-                    if m.group(1) not in pruned:
-                        pruned.append(m.group(1))
-                    dropped.append(m.group(1))
-                else:
-                    dropped.append(lines[n - 1].strip()[:60] or f"{n} 行目")
-                lines[n - 1] = ""
+            if n - 1 >= len(lines):
+                continue
+            m = re.search(r'bake\("([^"]+?)(?:_light|_dark)?"', lines[n - 1])
+            if not m:
+                continue          # 撮影行以外は消さない。消すと土台が壊れて原因が見えなくなる
+            if m.group(1) not in pruned:
+                pruned.append(m.group(1))
+            dropped.append(m.group(1))
+            lines[n - 1] = ""
+        if not dropped:
+            why = " / ".join(re.sub(r"^.*?: error: ", "", l) for l in errs[:4])
+            if not keep:
+                shutil.rmtree(dst, ignore_errors=True)
+            raise SystemExit("ビルドに失敗しました:\n" + (why or out[-600:]))
         test_file.write_text("\n".join(lines), encoding="utf-8")
         log(f"コンパイルが通らないので外しました: {', '.join(dropped)}", "!")
         for e in errs[:4]:
@@ -176,7 +181,9 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
                 for f in ("STATE", "LOG"):
                     (box / f).unlink(missing_ok=True)
                 # 落ちた絵は飛ばす。ソースではなくこのファイルで伝える（再ビルドを起こさない）
-                (box / "SKIP").write_text("\n".join(failed + pruned), encoding="utf-8")
+                # 撮影側は _light / _dark を落とした名前で見ている。合わせないと素通りする
+                skips = sorted({re.sub(r"_(light|dark)$", "", n) for n in failed + pruned})
+                (box / "SKIP").write_text("\n".join(skips), encoding="utf-8")
             code, out = xcode.osascript([start_s, str(dst), "BakeshotRender"])
             if "not loaded" in out:
                 raise SystemExit("Xcode がプロジェクトを開けませんでした")
@@ -197,6 +204,7 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
                 if last and time.time() - last_change > 30:
                     break
             xcode.osascript([stop_s, str(dst)])
+            time.sleep(3)          # 止まり切る前に次を走らせると、Xcode が受け付けない
             if not box:
                 raise SystemExit("Xcode でテストが始まりませんでした（ビルドが通っていない可能性）")
 

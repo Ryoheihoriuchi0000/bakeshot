@@ -29,7 +29,12 @@ def close_project(path: Path):
     ⚠ `tell application "Xcode"` は起動していなければ **起動してしまう** ので、先に確かめる。"""
     if not xcode_is_running():
         return
-    osascript(["-e", f'tell application "Xcode" to close (every workspace document whose path is "{path}") saving no'])
+    # path は Xcode 側の表記と食い違うことがある（/tmp と /private/tmp）。名前でも閉じる
+    name = path.name
+    osascript(["-e",
+               f'tell application "Xcode" to close (every workspace document whose path is "{path}") saving no'])
+    osascript(["-e",
+               f'tell application "Xcode" to close (every workspace document whose name is "{name}") saving no'])
 
 
 def mac_destination_id(project: Path, scheme: str = "BakeshotRender") -> str:

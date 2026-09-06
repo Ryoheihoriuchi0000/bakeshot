@@ -1,7 +1,7 @@
 import XCTest
 import SwiftUI
 import UIKit
-__IMPORTS__@testable import __MODULE__
+@testable import __MODULE__
 
 /// Bakeshot が生成。本物の iOS ランタイム（My Mac / Designed for iPad）で、アプリの View をそのまま画像にする。
 final class RenderTests: XCTestCase {

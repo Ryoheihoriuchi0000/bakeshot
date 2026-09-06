@@ -7,8 +7,11 @@ on run argv
     set AppleScript's text item delimiters to "/"
     set projName to last text item of projPath
     set AppleScript's text item delimiters to ""
+    -- Xcode が起動していないと `tell ... open` は -600 で落ちる（アプリが動いていない）。
+    -- シェルから開く。-g で前面に出さないので、作業の邪魔をしない
+    do shell script "open -g -a Xcode " & quoted form of projPath
+    delay 2
     tell application "Xcode"
-        open projPath
         set ws to missing value
         set isReady to false
         -- パッケージが多いと開き切るまで数分。`loaded` は解決中 false のままなので、スキームが見えたら可とする
