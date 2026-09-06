@@ -42,12 +42,13 @@ be* in that state — so you, or the agent you asked, has to put it there first:
 
 | The screenshot you want | What you or your agent has to do first |
 |---|---|
-| Home screen with a month of history | Wait a month, or enter it all by hand |
-| A seven-day streak | Nothing works. Come back in a week |
-| The paid tier | Buy it, or wire up a sandbox account |
-| The empty state, the error state | Break the app on purpose, then put it back |
-| The same shots in five languages | Switch the device language and reshoot everything, five times |
-| A widget | Install the app, place the widget, configure it, feed it data, photograph the home screen, crop |
+| A home screen with a month of history | Seed the database, or tap the data in by hand |
+| A seven-day streak | Use the app for seven days running — or forge the dates in storage |
+| The paid tier, active | Set up a StoreKit sandbox account and buy through it |
+| An empty state, an error state | Wipe the data, or cut the network, and hope nothing else changes |
+| A chart that looks good | Keep re-seeding until the numbers happen to make a nice shape |
+| The same shots in five languages | Change the device language and take every shot again, five times |
+| A widget | Install the app, add the widget, configure it, get data into it, then photograph the home screen and crop |
 
 Bakeshot builds the state in code and draws the view directly. A month of history is four
 lines. The paid tier is one initialiser. Five languages is one flag.
