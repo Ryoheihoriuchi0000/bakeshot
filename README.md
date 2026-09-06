@@ -105,13 +105,17 @@ when the run ends — including when the run fails. Nothing is left behind.
 
 ## Price
 
-The public version renders at 6.9" (1320×2868). That is enough to ship an iPhone listing,
-and enough to see it work on your own app.
+Everything you see above is free: every screen, every language, every device size.
+
+**Widgets are the paid part.** You can screenshot an app screen by hand if you have to.
+You cannot really screenshot a widget — you have to install the app, place the widget,
+configure it, get real data into it, photograph the home screen and crop. Bakeshot renders
+it directly, in the state you asked for, at the exact store size.
 
 | | |
 |---|---|
-| Public | free, forever — 6.9" |
-| Full | **$49 / year** — 6.7 / 6.5 / 6.3 as well, and widgets |
+| Public | free, forever — app screens |
+| Widgets | **$49 / year** |
 | Team / agency | **$199 / year** — several projects, CI |
 | Launch offer | **$99 once**, first 100 buyers |
 

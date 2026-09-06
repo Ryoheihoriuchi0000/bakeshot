@@ -6,7 +6,7 @@ _loaded = None
 
 
 def pro():
-    """完全版が入っているか。入っていれば端末とウィジェットが増える。"""
+    """完全版が入っているか。入っていればウィジェットが焼ける。"""
     global _loaded
     if _loaded is None:
         try:

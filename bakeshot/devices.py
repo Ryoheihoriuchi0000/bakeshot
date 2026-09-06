@@ -1,11 +1,15 @@
 """端末の寸法（pt）。Probe アプリで実機から測った値。
 
-公開版は 6.9" だけ。他のサイズは完全版（bakeshot_pro）が足す。
+**サイズで課金しない。** 出てくるのは素材で、装飾の道具が 1 枚から各サイズを書き出す。
+どの寸法で撮ったかはほとんど関係がないので、全部無料で使える。
 """
 
 # 名前: (幅, 高さ, 上のセーフエリア, 下のセーフエリア, 書き出す画素)
 DEVICES = {
     "6.9": (440, 956, 62, 34, (1320, 2868)),
+    "6.7": (430, 932, 59, 34, (1290, 2796)),
+    "6.5": (414, 896, 44, 34, (1242, 2688)),
+    "6.3": (402, 874, 62, 34, (1206, 2622)),
 }
 DEFAULT = "6.9"
 
@@ -17,8 +21,5 @@ def register(name, spec):
 
 def metrics(name: str):
     if name not in DEVICES:
-        from . import features
-        extra = "" if features.pro() else (
-            "\n  6.9\" 以外は完全版が要ります → https://bakeshot.lemonsqueezy.com")
-        raise SystemExit(f"知らない端末です: {name}（使えるのは {', '.join(DEVICES)}）{extra}")
+        raise SystemExit(f"知らない端末です: {name}（使えるのは {', '.join(DEVICES)}）")
     return DEVICES[name]

@@ -67,7 +67,8 @@ realistic names. An empty screen is a wasted screenshot.
 bakeshot bake --locale ja --locale en
 ```
 
-Add `--device 6.9 --device 6.5` if the full version is installed (`bakeshot status` says).
+Add `--device 6.9 --device 6.5` for more sizes — though one size is usually enough, since
+the decoration step scales it. Widgets need the full version (`bakeshot status` says which).
 
 ## 4. Fix what failed, then bake again
 
