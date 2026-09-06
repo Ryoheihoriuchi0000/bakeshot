@@ -5,33 +5,6 @@ No simulator. No UI tests.
 
 https://github.com/user-attachments/assets/6a902e87-bb5d-467f-8c55-96d89f550ac3
 
-## Use it
-
-```bash
-pip install bakeshot
-cd MyApp
-bakeshot init
-```
-
-Then tell your coding agent:
-
-> **Bakeshot で App Store 用のスクショを作って**
-> — or, in English, *"make the App Store screenshots with Bakeshot"*
-
-`init` installs a skill into `.claude/skills/bakeshot/`, so the agent reads your models and
-views, writes the scene script, runs the render, fixes whatever crashed, and tells you where
-the images are. You do not have to learn the flags, or the file, or any of this README.
-
-<details>
-<summary>Not using Claude Code?</summary>
-
-Point any agent at the skill: *"Read `.claude/skills/bakeshot/SKILL.md` and follow it."*
-Or drive it yourself: edit `Bakeshot/Scenes.swift`, then `bakeshot bake --locale ja --locale en`.
-
-</details>
-
-PNGs land in `Bakeshot/out/<locale>/`, at real store dimensions.
-
 ## Without Bakeshot
 
 A store screenshot is only worth taking if the app is showing something good. But to
@@ -67,6 +40,33 @@ rendered by iOS. The app never has to reach the state — the state is handed to
 It does not decorate. Backgrounds, captions and device frames are somebody else's job
 (try [app-store-screenshots](https://github.com/ParthJadhav/app-store-screenshots)).
 Bakeshot does the part nobody has automated: **the real UI, in the state that sells it.**
+
+## Use it
+
+```bash
+pip install bakeshot
+cd MyApp
+bakeshot init
+```
+
+Then tell your coding agent:
+
+> **Bakeshot で App Store 用のスクショを作って**
+> — or, in English, *"make the App Store screenshots with Bakeshot"*
+
+`init` installs a skill into `.claude/skills/bakeshot/`, so the agent reads your models and
+views, writes the scene script, runs the render, fixes whatever crashed, and tells you where
+the images are. You do not have to learn the flags, or the file, or any of this README.
+
+<details>
+<summary>Not using Claude Code?</summary>
+
+Point any agent at the skill: *"Read `.claude/skills/bakeshot/SKILL.md` and follow it."*
+Or drive it yourself: edit `Bakeshot/Scenes.swift`, then `bakeshot bake --locale ja --locale en`.
+
+</details>
+
+PNGs land in `Bakeshot/out/<locale>/`, at real store dimensions.
 
 ## Why not fastlane snapshot
 
