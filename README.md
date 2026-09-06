@@ -1,19 +1,19 @@
-# Kiln
+# Bakeshot
 
 **Real App Store screenshots from your Xcode project. No simulator. No UI tests.**
 
 https://github.com/user-attachments/assets/PLACEHOLDER
 
 ```bash
-kiln bake --locale ja --locale en
+bakeshot bake --locale ja --locale en
 ```
 
-Kiln builds your iOS app, runs it on your Mac, and renders your actual SwiftUI views
+Bakeshot builds your iOS app, runs it on your Mac, and renders your actual SwiftUI views
 to PNGs at App Store sizes — every screen, every language, light and dark, widgets included.
 
 It does not decorate. Backgrounds, captions and device frames are somebody else's job
 (try [app-store-screenshots](https://github.com/ParthJadhav/app-store-screenshots)).
-Kiln only does the part nobody has automated: **capturing the real UI**.
+Bakeshot only does the part nobody has automated: **capturing the real UI**.
 
 ## Why
 
@@ -21,25 +21,25 @@ Kiln only does the part nobody has automated: **capturing the real UI**.
 simulators. Most people give up and take screenshots by hand — then do it again next
 release, times every language, times every device size.
 
-Kiln skips all of that. There is no simulator and no UI test. Your views are rendered
+Bakeshot skips all of that. There is no simulator and no UI test. Your views are rendered
 directly, from your real code, with your real data.
 
 ## How you use it
 
 ```bash
-pip install kiln-shots
+pip install bakeshot
 cd MyApp
-kiln doctor      # checks Xcode, Ruby, the xcodeproj gem
-kiln init        # writes Kiln/Scenes.swift (a draft) and a guide
-kiln bake        # renders it
+bakeshot doctor      # checks Xcode, Ruby, the xcodeproj gem
+bakeshot init        # writes Bakeshot/Scenes.swift (a draft) and a guide
+bakeshot bake        # renders it
 ```
 
-`kiln init` leaves a **scene script** in your repo. That is where you say *what to shoot
+`bakeshot init` leaves a **scene script** in your repo. That is where you say *what to shoot
 and in what state* — in Swift, using your own types:
 
 ```swift
-enum KilnScenes {
-    @MainActor static var scenes: [KilnScene] {
+enum BakeshotScenes {
+    @MainActor static var scenes: [BakeshotScene] {
         [
             shotBoth("home_busy") { HomeView().environmentObject(busyStore()) },
             shot("paywall", dark: true) { PlusSheet().environmentObject(PlusStore()) },
@@ -56,18 +56,18 @@ enum KilnScenes {
 }
 ```
 
-This is the point of Kiln. An empty app makes a worthless screenshot; the state is what
+This is the point of Bakeshot. An empty app makes a worthless screenshot; the state is what
 sells. And because the script is plain Swift next to your code, **your coding agent can
 write it** — "shoot the home screen with four tags and three hours logged today, dark
-mode" is a request Claude Code or Cursor can turn into the code above. The guide Kiln
-drops in `Kiln/台本の書き方.md` is written for exactly that.
+mode" is a request Claude Code or Cursor can turn into the code above. The guide Bakeshot
+drops in `Bakeshot/台本の書き方.md` is written for exactly that.
 
-Output lands in `Kiln/out/<device>/<locale>/<name>.png` at real store dimensions
+Output lands in `Bakeshot/out/<device>/<locale>/<name>.png` at real store dimensions
 (6.9" → 1320×2868, 6.5" → 1242×2688, and so on).
 
 ## How it works
 
-1. Copies your `.xcodeproj` to `YourApp-Kiln.xcodeproj` and adds an XCTest target hosted
+1. Copies your `.xcodeproj` to `YourApp-Bakeshot.xcodeproj` and adds an XCTest target hosted
    by your app. Your project is never modified.
 2. Builds it for **My Mac (Designed for iPad)** — your iOS binary, running on macOS.
    Firebase, UIKit, your fonts and assets are all the real thing.
@@ -83,7 +83,7 @@ approximation.
 - `gem install --user-install xcodeproj`
 - Your app must be signable with your own team (the same setup you already build with)
 
-`kiln doctor` checks all of this and tells you what is missing.
+`bakeshot doctor` checks all of this and tells you what is missing.
 
 ## Known limits
 
@@ -91,7 +91,7 @@ approximation.
   (`xcodebuild test` cannot launch an iOS-on-Mac test host; the IDE can. This is a
   workaround for that, not a preference.)
 - Screens that need network, keychain or a live account may crash while rendering.
-  Kiln names them and bakes the rest — give them what they need in the scene script.
+  Bakeshot names them and bakes the rest — give them what they need in the scene script.
 - Widgets are supported, but their sources are compiled into the test bundle, so a widget
   that depends on the extension's own asset catalog may render without those images.
 

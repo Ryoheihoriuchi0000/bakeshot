@@ -34,7 +34,7 @@ def checks(root: Path = None):
                 "`gem install --user-install xcodeproj` を実行してください"))
 
     if root:
-        projs = [p for p in Path(root).glob("*.xcodeproj") if not p.name.endswith("-Kiln.xcodeproj")]
+        projs = [p for p in Path(root).glob("*.xcodeproj") if not p.name.endswith("-Bakeshot.xcodeproj")]
         out.append((".xcodeproj", bool(projs),
                     f"{root} に .xcodeproj がありません。プロジェクトの根で実行してください"))
     return out
@@ -50,6 +50,6 @@ def report(root: Path = None, quiet_when_ok: bool = False) -> bool:
     if bad:
         print("\n足りないものがあります。上の指示に従ってから、もう一度実行してください。")
     else:
-        print("\n準備できています。`kiln init` から始めてください。")
-        print("※ 初めて焼く時に「Kiln が Xcode を制御することを許可しますか」と聞かれます。許可してください。")
+        print("\n準備できています。`bakeshot init` から始めてください。")
+        print("※ 初めて焼く時に「Bakeshot が Xcode を制御することを許可しますか」と聞かれます。許可してください。")
     return not bad

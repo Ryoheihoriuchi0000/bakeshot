@@ -22,7 +22,7 @@ def log(msg, kind="·"):
 def find_out_dir(token: str):
     """アプリのサンドボックスにある受け皿。コンテナは走るまで決まらない。"""
     for c in CONTAINERS.iterdir() if CONTAINERS.is_dir() else []:
-        d = c / "Data" / "tmp" / "kiln_out" / token
+        d = c / "Data" / "tmp" / "bakeshot_out" / token
         if d.is_dir():
             return d
     return None
@@ -31,7 +31,7 @@ def find_out_dir(token: str):
 def ensure_scenes(root: Path, module: str, imports: str) -> Path:
     """台本を用意する。**何をどんな状態で撮るかは利用者（とそのエージェント）が書く。**
     自動検出は下書きでしかない（空の初期状態しか出せない）。"""
-    d = root / "Kiln"
+    d = root / "Bakeshot"
     f = d / "Scenes.swift"
     if f.exists():
         return f
@@ -42,7 +42,7 @@ def ensure_scenes(root: Path, module: str, imports: str) -> Path:
     if guide.exists():
         (d / "台本の書き方.md").write_text(
             guide.read_text(encoding="utf-8").replace("__MODULE__", module), encoding="utf-8")
-    log(f"Kiln/Scenes.swift に下書きを置きました（{len(views)} 画面）。"
+    log(f"Bakeshot/Scenes.swift に下書きを置きました（{len(views)} 画面）。"
         f"何をどんな状態で撮るかは、ここを直してください", "!")
     return f
 
@@ -56,10 +56,10 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
     scenes_file = ensure_scenes(root, module, imports)
     names = scenes_mod.names(scenes_file.read_text(encoding="utf-8"))
     if not names:
-        raise SystemExit("台本に絵がありません。Kiln/Scenes.swift に shot / shotBoth を書いてください。")
+        raise SystemExit("台本に絵がありません。Bakeshot/Scenes.swift に shot / shotBoth を書いてください。")
 
     token = uuid.uuid4().hex[:8]
-    work = root / "Kiln" / ".work"
+    work = root / "Bakeshot" / ".work"
     shutil.rmtree(work, ignore_errors=True)
     work.mkdir(parents=True, exist_ok=True)
 
@@ -70,13 +70,13 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
         test = test.replace(k, v)
     test_file = work / "RenderTests.swift"
     test_file.write_text(test, encoding="utf-8")
-    api_file = work / "KilnSceneAPI.swift"
-    api_file.write_text((KIT / "KilnSceneAPI.swift.template").read_text(encoding="utf-8"), encoding="utf-8")
+    api_file = work / "BakeshotSceneAPI.swift"
+    api_file.write_text((KIT / "BakeshotSceneAPI.swift.template").read_text(encoding="utf-8"), encoding="utf-8")
 
     log(f"台本にある {len(names)} 枚を焼きます（{locale} / {device}\"）")
 
     # 1) xcodeproj を複製してテストターゲットを足す
-    dst = project.with_name(project.stem + "-Kiln.xcodeproj")
+    dst = project.with_name(project.stem + "-Bakeshot.xcodeproj")
     xcode.close_project(dst)
     code, out = xcode.run(["/usr/bin/env", "ruby", str(KIT / "add_test_target.rb"),
                            str(project), str(dst),
@@ -133,7 +133,7 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
                     (box / f).unlink(missing_ok=True)
                 # 落ちた絵は飛ばす。ソースではなくこのファイルで伝える（再ビルドを起こさない）
                 (box / "SKIP").write_text("\n".join(failed + pruned), encoding="utf-8")
-            code, out = xcode.osascript([start_s, str(dst), "KilnRender"])
+            code, out = xcode.osascript([start_s, str(dst), "BakeshotRender"])
             if "not loaded" in out:
                 raise SystemExit("Xcode がプロジェクトを開けませんでした")
 

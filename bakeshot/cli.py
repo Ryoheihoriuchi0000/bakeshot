@@ -1,4 +1,4 @@
-"""kiln — シミュレータも UI テストも無しで、アプリの実UIを焼く。"""
+"""bakeshot — シミュレータも UI テストも無しで、アプリの実UIを焼く。"""
 import argparse
 import json
 import sys
@@ -8,21 +8,21 @@ from . import __version__, bake as bake_mod, devices, doctor as doctor_mod, scen
 
 
 def find_project(root: Path):
-    cands = [p for p in root.glob("*.xcodeproj") if not p.name.endswith("-Kiln.xcodeproj")]
+    cands = [p for p in root.glob("*.xcodeproj") if not p.name.endswith("-Bakeshot.xcodeproj")]
     if not cands:
         raise SystemExit(f"{root} に .xcodeproj がありません")
     return sorted(cands)[0]
 
 
 def load_config(root: Path):
-    f = root / "Kiln" / "kiln.json"
+    f = root / "Bakeshot" / "bakeshot.json"
     return json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
 
 
 def save_config(root: Path, cfg):
-    d = root / "Kiln"
+    d = root / "Bakeshot"
     d.mkdir(parents=True, exist_ok=True)
-    (d / "kiln.json").write_text(json.dumps(cfg, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    (d / "bakeshot.json").write_text(json.dumps(cfg, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
 def cmd_init(args):
@@ -38,11 +38,11 @@ def cmd_init(args):
     imports = "".join(f"#if canImport({m})\nimport {m}\n#endif\n"
                       for m in sorted(scenes_mod.local_package_modules(root)))
     bake_mod.ensure_scenes(root, module, imports)
-    print(f"用意しました: {root/'Kiln'}")
+    print(f"用意しました: {root/'Bakeshot'}")
     print("  Scenes.swift    ← 何をどんな状態で撮るかを書く（エージェントに書かせる）")
     print("  台本の書き方.md  ← その説明書")
-    print("  kiln.json       ← 言語と端末サイズ")
-    print("\n次: 台本を直してから `kiln bake`")
+    print("  bakeshot.json       ← 言語と端末サイズ")
+    print("\n次: 台本を直してから `bakeshot bake`")
 
 
 def cmd_doctor(args):
@@ -60,7 +60,7 @@ def cmd_bake(args):
     target = args.target or cfg.get("target") or project.stem
     locales = args.locale or cfg.get("locales") or ["ja"]
     devs = args.device or cfg.get("devices") or [devices.DEFAULT]
-    out_root = Path(args.out).resolve() if args.out else root / "Kiln" / "out"
+    out_root = Path(args.out).resolve() if args.out else root / "Bakeshot" / "out"
     total = 0
     for dev in devs:
         for loc in locales:
@@ -75,7 +75,7 @@ def cmd_bake(args):
 
 
 def main(argv=None):
-    p = argparse.ArgumentParser(prog="kiln", description=__doc__)
+    p = argparse.ArgumentParser(prog="bakeshot", description=__doc__)
     p.add_argument("--version", action="version", version=__version__)
     sub = p.add_subparsers(dest="cmd", required=True)
 
@@ -94,12 +94,12 @@ def main(argv=None):
     b.add_argument("--locale", action="append", help="言語（繰り返し指定可。例: --locale ja --locale en）")
     b.add_argument("--device", action="append", choices=list(devices.DEVICES),
                    help=f"端末サイズ（既定: {devices.DEFAULT}）")
-    b.add_argument("--out", help="書き出し先（既定: Kiln/out）")
+    b.add_argument("--out", help="書き出し先（既定: Bakeshot/out）")
     b.add_argument("--bundle-id", help="bundle id を差し替える（他人のプロジェクト用）")
     b.add_argument("--team", help="署名するチーム ID")
     b.add_argument("--strip-entitlements", action="store_true", help="entitlements を剥がす")
     b.add_argument("--keep-extensions", action="store_true", help="拡張ターゲットを複製に残す")
-    b.add_argument("--keep-project", action="store_true", help="作った *-Kiln.xcodeproj を消さない")
+    b.add_argument("--keep-project", action="store_true", help="作った *-Bakeshot.xcodeproj を消さない")
     b.set_defaults(func=cmd_bake)
 
     args = p.parse_args(argv)

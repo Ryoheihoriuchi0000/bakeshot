@@ -1,4 +1,4 @@
-# Kiln: 焼きたいアプリの .xcodeproj を複製し、アプリをホストにした XCTest ターゲットを足す。
+# Bakeshot: 焼きたいアプリの .xcodeproj を複製し、アプリをホストにした XCTest ターゲットを足す。
 # 使い方: ruby add_test_target.rb <src.xcodeproj> <dst.xcodeproj> <sources(":"区切り)> <appTarget>
 #           [bundleIdOverride] [stripExtensions 0/1] [stripEntitlements 0/1] [language] [team]
 require 'xcodeproj'
@@ -24,13 +24,13 @@ if team.nil? || team.empty?
   end
 end
 if team.nil? || team.empty? || team.include?('$(')
-  abort("署名するチームが分かりません。Xcode でアプリのターゲットに Team を設定するか、`kiln bake --team <ID>` で渡してください。")
+  abort("署名するチームが分かりません。Xcode でアプリのターゲットに Team を設定するか、`bakeshot bake --team <ID>` で渡してください。")
 end
 
 dt = (app.build_configurations.map { |c| c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] } +
       proj.build_configurations.map { |c| c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] }).compact.first || '17.0'
-test = proj.new_target(:unit_test_bundle, 'KilnRenderTests', :ios, dt)
-group = proj.main_group.new_group('KilnRender')
+test = proj.new_target(:unit_test_bundle, 'BakeshotRenderTests', :ios, dt)
+group = proj.main_group.new_group('BakeshotRender')
 refs = test_srcs.split(':').reject(&:empty?).map { |f| group.new_file(f) }
 test.add_file_references(refs)
 test.add_dependency(app)
@@ -76,15 +76,15 @@ if widget_src_dir && !widget_src_dir.empty?
       next if path.empty? || !path.end_with?('.swift') || app_files.include?(path)
       text = File.read(path)
       # ウィジェット本体（@main / WidgetBundle）は焼くのに要らない
-      text = text.gsub(/^@main\s*$/, '// [kiln] @main はテストに置けないので外しました')
+      text = text.gsub(/^@main\s*$/, '// [bakeshot] @main はテストに置けないので外しました')
       # 拡張のファイルはアプリの型（Shared/ の Station 等）を使う。テスト側では @testable でしか見えない
       text = "@testable import #{host.gsub('-', '_')}\n" + text
       # ウィジェットの環境値はホストが与えるもので、外から渡せない。
       # 保存プロパティに直して、台本から family を指定できるようにする（private も外す）
       text = text.gsub(/^([ \t]*)@Environment\(\\\.widgetFamily\)[ \t]+(?:private[ \t]+)?var[ \t]+(\w+)[ \t]*$/,
-                       '\\1var \\2: WidgetFamily = .systemMedium   // [kiln] 台本から渡せるようにした')
+                       '\\1var \\2: WidgetFamily = .systemMedium   // [bakeshot] 台本から渡せるようにした')
       text = text.gsub(/^([ \t]*)@Environment\(\\\.widgetRenderingMode\)[ \t]+(?:private[ \t]+)?var[ \t]+(\w+)[ \t]*$/,
-                       '\\1var \\2: WidgetRenderingMode = .fullColor   // [kiln] 台本から渡せるようにした')
+                       '\\1var \\2: WidgetRenderingMode = .fullColor   // [bakeshot] 台本から渡せるようにした')
       dst_file = File.join(widget_src_dir, File.basename(path))
       next if added.include?(dst_file)
       File.write(dst_file, text)
@@ -107,8 +107,8 @@ test.build_configurations.each do |c|
   end
   s['TEST_HOST'] = "$(BUILT_PRODUCTS_DIR)/#{prod}.app/#{prod}"
   s['BUNDLE_LOADER'] = '$(TEST_HOST)'
-  s['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.artemis.kiln.rendertests'
-  s['PRODUCT_NAME'] = 'KilnRenderTests'
+  s['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.artemis.bakeshot.rendertests'
+  s['PRODUCT_NAME'] = 'BakeshotRenderTests'
   s['DEVELOPMENT_TEAM'] = team
   s['CODE_SIGN_STYLE'] = 'Automatic'
   s['GENERATE_INFOPLIST_FILE'] = 'YES'
@@ -152,5 +152,5 @@ if lang && !lang.empty?
   scheme.test_action.xml_element.attributes['language'] = lang
   scheme.launch_action.xml_element.attributes['language'] = lang
 end
-scheme.save_as(dst, 'KilnRender', true)
+scheme.save_as(dst, 'BakeshotRender', true)
 puts "ok: #{dst}"

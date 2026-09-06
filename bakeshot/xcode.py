@@ -32,7 +32,7 @@ def close_project(path: Path):
     osascript(["-e", f'tell application "Xcode" to close (every workspace document whose path is "{path}") saving no'])
 
 
-def mac_destination_id(project: Path, scheme: str = "KilnRender") -> str:
+def mac_destination_id(project: Path, scheme: str = "BakeshotRender") -> str:
     """「My Mac (Designed for iPad)」の宛先 id。
     `variant=Designed for [iPad,iPhone]` はカンマで xcodebuild のパーサが落ちるので id で渡す。"""
     _, out = run(["/usr/bin/xcrun", "xcodebuild", "-showdestinations",
@@ -47,7 +47,7 @@ def mac_destination_id(project: Path, scheme: str = "KilnRender") -> str:
         "Apple silicon の Mac と、iOS を対象にしたアプリのターゲットが要ります。")
 
 
-def build_for_testing(project: Path, dest_id: str, derived: Path, scheme: str = "KilnRender"):
+def build_for_testing(project: Path, dest_id: str, derived: Path, scheme: str = "BakeshotRender"):
     return run(["/usr/bin/xcrun", "xcodebuild", "build-for-testing",
                 "-project", str(project), "-scheme", scheme,
                 "-destination", f"platform=macOS,arch=arm64,id={dest_id}",

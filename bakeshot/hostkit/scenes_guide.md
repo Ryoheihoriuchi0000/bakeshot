@@ -1,7 +1,7 @@
-# Kiln の撮影台本の書き方
+# Bakeshot の撮影台本の書き方
 
-`Kiln/Scenes.swift` に「何を、どんな状態で撮るか」を Swift で書きます。
-Kiln はそれを**本物の iOS ランタイム**（My Mac / Designed for iPad）で走らせ、実UIの PNG を書き出します。
+`Bakeshot/Scenes.swift` に「何を、どんな状態で撮るか」を Swift で書きます。
+Bakeshot はそれを**本物の iOS ランタイム**（My Mac / Designed for iPad）で走らせ、実UIの PNG を書き出します。
 シミュレータも UI テストも要りません。
 
 ## 形
@@ -10,8 +10,8 @@ Kiln はそれを**本物の iOS ランタイム**（My Mac / Designed for iPad�
 import SwiftUI
 @testable import __MODULE__
 
-enum KilnScenes {
-    @MainActor static var scenes: [KilnScene] {
+enum BakeshotScenes {
+    @MainActor static var scenes: [BakeshotScene] {
         [
             // ライトとダークを 1 行で
             shotBoth("home_busy") {
@@ -28,7 +28,7 @@ enum KilnScenes {
 
 `shot` は 1 枚、`shotBoth` はライト/ダークの 2 枚を返します。
 配列に混ぜる時は末尾の `.flatMap { $0 }` を付けたままにしてください
-（`shot` は `[KilnScene]` ではなく `KilnScene` を返すので、混ぜる時は `[shot(...)]` と包みます）。
+（`shot` は `[BakeshotScene]` ではなく `BakeshotScene` を返すので、混ぜる時は `[shot(...)]` と包みます）。
 
 ## 状態を作る
 
@@ -47,11 +47,11 @@ enum KilnScenes {
 
 ## 言語で出し分ける
 
-Kiln は言語ごとに焼き直します。台本の中で見せる文言を変えたい時は `Kiln.L` を使います。
+Bakeshot は言語ごとに焼き直します。台本の中で見せる文言を変えたい時は `Bakeshot.L` を使います。
 
 ```swift
 shotBoth("home") {
-    HomeView().environmentObject(store(title: Kiln.L("勉強", "Study")))
+    HomeView().environmentObject(store(title: Bakeshot.L("勉強", "Study")))
 }
 ```
 
@@ -61,7 +61,7 @@ shotBoth("home") {
   `HomeView(x: .init(...))` のように渡してください。
 - **描いている最中に落ちる**: 依存（ネットワーク・キーチェーン・環境オブジェクト）が足りていません。
   必要な物を `.environmentObject(...)` / `.environment(...)` で渡すか、その画面を台本から外します。
-  Kiln は落ちた画面を名指しで外し、残りを焼きます。
+  Bakeshot は落ちた画面を名指しで外し、残りを焼きます。
 
 ## 出来た絵の使い道
 

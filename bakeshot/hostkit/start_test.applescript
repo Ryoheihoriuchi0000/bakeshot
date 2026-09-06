@@ -1,4 +1,4 @@
--- Kiln: Xcode でテストを開始して**すぐ返る**。完了は Kiln が進捗ファイルで見張る。
+-- Bakeshot: Xcode でテストを開始して**すぐ返る**。完了は Bakeshot が進捗ファイルで見張る。
 -- 使い方: osascript start_test.applescript <xcodeproj path> <scheme>
 -- ⚠ 開いたまま xcodeproj を作り直すと「別のアプリが変更」ダイアログで止まる。作り直す前に stop_test で閉じる
 on run argv

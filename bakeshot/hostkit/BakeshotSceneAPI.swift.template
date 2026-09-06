@@ -1,11 +1,11 @@
 import SwiftUI
 
-// Kiln が入れる。撮影台本（Kiln/Scenes.swift）から使う道具立て。
-// **このファイルは編集しないでください。** 台本は Kiln/Scenes.swift に書きます。
+// Bakeshot が入れる。撮影台本（Bakeshot/Scenes.swift）から使う道具立て。
+// **このファイルは編集しないでください。** 台本は Bakeshot/Scenes.swift に書きます。
 
-/// 絵の大きさ。既定は端末の画面（`kiln bake --device` で決まる）。
+/// 絵の大きさ。既定は端末の画面（`bakeshot bake --device` で決まる）。
 /// ウィジェットは画面ではないので、寸法を明示する。
-public enum KilnSize {
+public enum BakeshotSize {
     case phone                 // 端末の画面。ノッチと Home バーのセーフエリアが入る
     case widgetSmall           // 170 × 170
     case widgetMedium          // 364 × 170
@@ -27,10 +27,10 @@ public enum KilnSize {
 }
 
 /// 1 枚の絵。名前・ライト/ダーク・大きさ・中身。
-public struct KilnScene {
+public struct BakeshotScene {
     public let name: String
     public let dark: Bool
-    public let size: KilnSize
+    public let size: BakeshotSize
     public let body: () -> AnyView
 }
 
@@ -39,26 +39,26 @@ public struct KilnScene {
 ///   - name: 書き出すファイル名（言語ごとのフォルダに入る）
 ///   - dark: ダークモードで焼くか
 @MainActor
-public func shot<V: View>(_ name: String, dark: Bool = false, size: KilnSize = .phone,
-                          @ViewBuilder _ body: @escaping () -> V) -> KilnScene {
-    KilnScene(name: name, dark: dark, size: size, body: { AnyView(body()) })
+public func shot<V: View>(_ name: String, dark: Bool = false, size: BakeshotSize = .phone,
+                          @ViewBuilder _ body: @escaping () -> V) -> BakeshotScene {
+    BakeshotScene(name: name, dark: dark, size: size, body: { AnyView(body()) })
 }
 
 /// ライトとダークを 1 行で並べる（`_light` / `_dark` が名前に付く）。
 @MainActor
-public func shotBoth<V: View>(_ name: String, size: KilnSize = .phone,
-                              @ViewBuilder _ body: @escaping () -> V) -> [KilnScene] {
+public func shotBoth<V: View>(_ name: String, size: BakeshotSize = .phone,
+                              @ViewBuilder _ body: @escaping () -> V) -> [BakeshotScene] {
     [shot("\(name)_light", dark: false, size: size, body),
      shot("\(name)_dark", dark: true, size: size, body)]
 }
 
 /// いま焼いている言語（"ja" / "en" など）。台本の中で見せる文言を出し分けたい時に使う。
-public enum Kiln {
+public enum Bakeshot {
     public static var locale: String {
-        ProcessInfo.processInfo.environment["KILN_LOCALE"]
+        ProcessInfo.processInfo.environment["BAKESHOT_LOCALE"]
             ?? (Locale.preferredLanguages.first.map { String($0.prefix(2)) } ?? "ja")
     }
     public static var isJa: Bool { locale.hasPrefix("ja") }
-    /// 言語で出し分ける。`Kiln.L("記録", "Track")`
+    /// 言語で出し分ける。`Bakeshot.L("記録", "Track")`
     public static func L(_ ja: String, _ en: String) -> String { isJa ? ja : en }
 }

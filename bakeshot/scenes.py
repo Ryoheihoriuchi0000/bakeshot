@@ -1,4 +1,4 @@
-"""撮影台本（Kiln/Scenes.swift）の読み書き。"""
+"""撮影台本（Bakeshot/Scenes.swift）の読み書き。"""
 import re
 from pathlib import Path
 
@@ -21,7 +21,7 @@ def guess_views(root: Path, limit: int = 8):
     """下書き用。引数なしで作れそうな View を雑に拾う。
     **当たりを付けるだけ**で、正しさは求めない（台本は人とエージェントが直す）。"""
     found = []
-    skip_dirs = {".git", "DerivedData", "build", ".build", "Pods", "Carthage", "Kiln"}
+    skip_dirs = {".git", "DerivedData", "build", ".build", "Pods", "Carthage", "Bakeshot"}
     for p in sorted(root.rglob("*.swift")):
         if any(part in skip_dirs or part.endswith(".xcodeproj") for part in p.parts):
             continue
@@ -69,15 +69,15 @@ def draft(module: str, imports: str, views):
     lines = "".join(f'            shotBoth("{v}") {{ {v}() }},\n' for v in views)
     if not lines:
         lines = "            // 引数なしで作れる View が見つかりませんでした。手で足してください。\n"
-    return f'''// Kiln の撮影台本。**ここを直してください。**
+    return f'''// Bakeshot の撮影台本。**ここを直してください。**
 //
 // 下は自動で作った下書きで、どの画面も「初期状態（データなし）」で焼きます。
 // 売り物の絵にするには、見せたい状態を自分で作って渡します。書き方は 台本の書き方.md へ。
 import SwiftUI
 {imports}@testable import {module}
 
-enum KilnScenes {{
-    @MainActor static var scenes: [KilnScene] {{
+enum BakeshotScenes {{
+    @MainActor static var scenes: [BakeshotScene] {{
         [
 {lines}        ].flatMap {{ $0 }}
     }}

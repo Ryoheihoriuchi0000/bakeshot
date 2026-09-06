@@ -1,4 +1,4 @@
--- Kiln: 走っているテストを止める。引数に close を渡すとプロジェクトも閉じる。
+-- Bakeshot: 走っているテストを止める。引数に close を渡すとプロジェクトも閉じる。
 on run argv
     set projPath to item 1 of argv
     set doClose to ((count of argv) > 1 and item 2 of argv is "close")

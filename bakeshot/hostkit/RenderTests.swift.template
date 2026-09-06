@@ -3,16 +3,16 @@ import SwiftUI
 import UIKit
 __IMPORTS__@testable import __MODULE__
 
-/// Kiln が生成。本物の iOS ランタイム（My Mac / Designed for iPad）で、アプリの View をそのまま画像にする。
+/// Bakeshot が生成。本物の iOS ランタイム（My Mac / Designed for iPad）で、アプリの View をそのまま画像にする。
 final class RenderTests: XCTestCase {
 
     @MainActor
     func testRender() throws {
-        // iOS アプリはサンドボックスの中。自分の一時領域へ書き、Kiln が回収する
+        // iOS アプリはサンドボックスの中。自分の一時領域へ書き、Bakeshot が回収する
         let out = URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent("kiln_out").appendingPathComponent("__TOKEN__")
+            .appendingPathComponent("bakeshot_out").appendingPathComponent("__TOKEN__")
         try FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
-        // 進捗をファイルに残す。落ちた／固まった View を Kiln が特定して、次の回で外せるように
+        // 進捗をファイルに残す。落ちた／固まった View を Bakeshot が特定して、次の回で外せるように
         let state = out.appendingPathComponent("STATE")
         let logFile = out.appendingPathComponent("LOG")
         func mark(_ text: String) {
@@ -24,7 +24,7 @@ final class RenderTests: XCTestCase {
             }
         }
         mark("BEGIN")
-        let box = KilnWatchBox()
+        let box = BakeshotWatchBox()
         Thread.detachNewThread {
             while true {
                 Thread.sleep(forTimeInterval: 1)
@@ -39,7 +39,7 @@ final class RenderTests: XCTestCase {
         let skip = Set(((try? String(contentsOf: out.appendingPathComponent("SKIP"), encoding: .utf8)) ?? "")
             .components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty })
 
-        func bake(_ name: String, dark: Bool, size sizeSpec: KilnSize = .phone,
+        func bake(_ name: String, dark: Bool, size sizeSpec: BakeshotSize = .phone,
                   @ViewBuilder _ content: () -> some View) {
             let base = name.replacingOccurrences(of: "_light", with: "").replacingOccurrences(of: "_dark", with: "")
             if skip.contains(base) { return }
@@ -87,15 +87,15 @@ final class RenderTests: XCTestCase {
             window.isHidden = true
         }
 
-        // 撮影台本（Kiln/Scenes.swift）に並んでいるぶんを、上から焼く
-        for scene in KilnScenes.scenes {
+        // 撮影台本（Bakeshot/Scenes.swift）に並んでいるぶんを、上から焼く
+        for scene in BakeshotScenes.scenes {
             bake(scene.name, dark: scene.dark, size: scene.size) { scene.body() }
         }
         mark("FINISHED")
     }
 }
 
-final class KilnWatchBox: @unchecked Sendable {
+final class BakeshotWatchBox: @unchecked Sendable {
     var name = ""
     var start: Date?
 }
