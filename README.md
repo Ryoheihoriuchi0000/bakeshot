@@ -4,12 +4,32 @@
 
 https://github.com/user-attachments/assets/6a902e87-bb5d-467f-8c55-96d89f550ac3
 
+## Use it
+
+```bash
+pip install bakeshot
+cd MyApp
+bakeshot init
+```
+
+`init` prints one sentence to paste into your coding agent:
+
+> Read `Bakeshot/AGENT.md` and write the scene script in `Bakeshot/Scenes.swift`.
+> Home screen with data in it, settings, and the paywall, in light and dark.
+
+Your agent writes the script. Then:
+
 ```bash
 bakeshot bake --locale ja --locale en
 ```
 
-Bakeshot builds your iOS app, runs it on your Mac, and renders your actual SwiftUI views
-to PNGs at App Store sizes — every screen, every language, light and dark, widgets included.
+PNGs land in `Bakeshot/out/<locale>/`, at real store dimensions.
+That is the whole tool: **two commands and one sentence.**
+
+## What it does
+
+Bakeshot builds your iOS app, runs it on your Mac as a real iOS binary, and renders your
+actual SwiftUI views — every screen, every language, light and dark, widgets included.
 
 It does not decorate. Backgrounds, captions and device frames are somebody else's job
 (try [app-store-screenshots](https://github.com/ParthJadhav/app-store-screenshots)).
@@ -21,21 +41,13 @@ Bakeshot only does the part nobody has automated: **capturing the real UI**.
 simulators. Most people give up and take screenshots by hand — then do it again next
 release, times every language, times every device size.
 
-Bakeshot skips all of that. There is no simulator and no UI test. Your views are rendered
-directly, from your real code, with your real data.
+There is no simulator and no UI test here. Your views are rendered directly, from your
+real code, with the state you asked for.
 
-## How you use it
+## The scene script
 
-```bash
-pip install bakeshot
-cd MyApp
-bakeshot doctor      # checks Xcode, Ruby, the xcodeproj gem
-bakeshot init        # writes Bakeshot/Scenes.swift (a draft) and a guide
-bakeshot bake        # renders it
-```
-
-`bakeshot init` leaves a **scene script** in your repo. That is where you say *what to shoot
-and in what state* — in Swift, using your own types:
+`Bakeshot/Scenes.swift` is where you say what to shoot and in what state. It is plain
+Swift against your own types, which is why an agent can write it:
 
 ```swift
 enum BakeshotScenes {
@@ -56,44 +68,37 @@ enum BakeshotScenes {
 }
 ```
 
-This is the point of Bakeshot. An empty app makes a worthless screenshot; the state is what
-sells. And because the script is plain Swift next to your code, **your coding agent can
-write it** — "shoot the home screen with four tags and three hours logged today, dark
-mode" is a request Claude Code or Cursor can turn into the code above. The guide Bakeshot
-drops in `Bakeshot/台本の書き方.md` is written for exactly that.
-
-Output lands in `Bakeshot/out/<device>/<locale>/<name>.png` at real store dimensions
-(6.9" → 1320×2868, 6.5" → 1242×2688, and so on).
+An empty app makes a worthless screenshot. The state is the product.
 
 ## How it works
 
-1. Copies your `.xcodeproj` to `YourApp-Bakeshot.xcodeproj` and adds an XCTest target hosted
-   by your app. Your project is never modified.
-2. Builds it for **My Mac (Designed for iPad)** — your iOS binary, running on macOS.
+1. Copies your `.xcodeproj` to `YourApp-Bakeshot.xcodeproj` and adds an XCTest target
+   hosted by your app. **Your project is never modified.**
+2. Builds it for *My Mac (Designed for iPad)* — your iOS binary, running on macOS.
    Firebase, UIKit, your fonts and assets are all the real thing.
-3. Renders each scene with `UIHostingController` + `drawHierarchy` and writes PNGs.
-4. Collects them, and drops any screen that crashes while rendering so the rest still ship.
-
-Because the app runs as a real iOS binary, what you get is iOS rendering — not a macOS
-approximation.
+3. Renders each scene with `UIHostingController` + `drawHierarchy`.
+4. Collects the PNGs, and names any screen that crashes so the rest still ship.
 
 ## Requirements
 
 - Apple silicon Mac with Xcode
 - `gem install --user-install xcodeproj`
-- Your app must be signable with your own team (the same setup you already build with)
+- Your app must be signable with your own team — the setup you already build with
 
-`bakeshot doctor` checks all of this and tells you what is missing.
+`bakeshot init` checks all of this and tells you what is missing.
+
+## Device sizes
+
+`--device 6.9` (default, 1320×2868), `6.7`, `6.5`, `6.3`. Repeat the flag for several.
 
 ## Known limits
 
 - Xcode is driven while baking, so you cannot use Xcode during a run.
-  (`xcodebuild test` cannot launch an iOS-on-Mac test host; the IDE can. This is a
-  workaround for that, not a preference.)
-- Screens that need network, keychain or a live account may crash while rendering.
-  Bakeshot names them and bakes the rest — give them what they need in the scene script.
-- Widgets are supported, but their sources are compiled into the test bundle, so a widget
-  that depends on the extension's own asset catalog may render without those images.
+  (`xcodebuild test` cannot launch an iOS-on-Mac test host; the IDE can.)
+- Screens that need network, keychain or a live account crash while rendering.
+  Bakeshot names them and bakes the rest — give them fakes in the scene script.
+- Widget sources are compiled into the test bundle, so a widget that depends on the
+  extension's own asset catalog may render without those images.
 
 ## License
 

@@ -25,6 +25,18 @@ def save_config(root: Path, cfg):
     (d / "bakeshot.json").write_text(json.dumps(cfg, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+NEXT_STEPS = """
+できました。次はこれをエージェント（Claude Code / Cursor など）に貼ってください。
+
+  Bakeshot/AGENT.md を読んで、Bakeshot/Scenes.swift に撮影台本を書いて。
+  ホーム画面はデータが入った状態、設定画面、課金画面を、ライトとダークで。
+
+書けたら:
+
+  bakeshot bake
+"""
+
+
 def cmd_init(args):
     root = Path(args.path).resolve()
     project = find_project(root)
@@ -37,12 +49,10 @@ def cmd_init(args):
     module = target.replace("-", "_")
     imports = "".join(f"#if canImport({m})\nimport {m}\n#endif\n"
                       for m in sorted(scenes_mod.local_package_modules(root)))
+    if not doctor_mod.report(root, quiet_when_ok=True):
+        raise SystemExit(1)
     bake_mod.ensure_scenes(root, module, imports)
-    print(f"用意しました: {root/'Bakeshot'}")
-    print("  Scenes.swift    ← 何をどんな状態で撮るかを書く（エージェントに書かせる）")
-    print("  台本の書き方.md  ← その説明書")
-    print("  bakeshot.json       ← 言語と端末サイズ")
-    print("\n次: 台本を直してから `bakeshot bake`")
+    print(NEXT_STEPS)
 
 
 def cmd_doctor(args):

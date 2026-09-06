@@ -38,12 +38,11 @@ def ensure_scenes(root: Path, module: str, imports: str) -> Path:
     d.mkdir(parents=True, exist_ok=True)
     views = scenes_mod.guess_views(root)
     f.write_text(scenes_mod.draft(module, imports, views), encoding="utf-8")
-    guide = KIT / "scenes_guide.md"
-    if guide.exists():
-        (d / "台本の書き方.md").write_text(
-            guide.read_text(encoding="utf-8").replace("__MODULE__", module), encoding="utf-8")
-    log(f"Bakeshot/Scenes.swift に下書きを置きました（{len(views)} 画面）。"
-        f"何をどんな状態で撮るかは、ここを直してください", "!")
+    for src_name, dst_name in [("agent_guide.md", "AGENT.md")]:
+        g = KIT / src_name
+        if g.exists():
+            (d / dst_name).write_text(g.read_text(encoding="utf-8").replace("__MODULE__", module),
+                                      encoding="utf-8")
     return f
 
 
