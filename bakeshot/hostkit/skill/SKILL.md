@@ -1,9 +1,9 @@
 ---
 name: bakeshot
-description: Make App Store screenshots of this app — real UI, real data, every language and device size. Use when the user asks for screenshots, store assets, App Store images, スクショ, or says they are preparing a release. Runs Bakeshot, which renders the app's actual SwiftUI views without a simulator or UI tests.
+description: Capture this app's real screens as PNGs — real UI, the state you choose, every language and device size. Use when the user asks for screenshots, store assets, App Store images, スクショ, or says they are preparing a release. Runs Bakeshot, which renders the app's actual SwiftUI views without a simulator or a device. It captures the raw screens; decorating them into store artwork is a separate step.
 ---
 
-# Making App Store screenshots with Bakeshot
+# Capturing the app's screens with Bakeshot
 
 You do the whole job. The user should only have to ask once.
 
@@ -19,7 +19,7 @@ something missing (Xcode, the `xcodeproj` gem), fix or explain it before going o
 ## 2. Read the app, then write the scene script
 
 Open `Bakeshot/Scenes.swift`. The draft lists whatever views happened to be constructible;
-it renders them **empty**, which is useless for a store listing. Replace it.
+it renders them **empty**, which is useless as source material. Replace it.
 
 Before writing, read the app's models and views to learn:
 - which screens a new user would be sold by (home with data, the main list, stats, paywall)

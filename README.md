@@ -1,12 +1,12 @@
 # Bakeshot
 
-**Make real App Store screenshots without a simulator or a device.**
+**Capture your app's real screens without a simulator or a device.**
 
 https://github.com/user-attachments/assets/6a902e87-bb5d-467f-8c55-96d89f550ac3
 
 ## Without Bakeshot
 
-Making the screens you want for a listing means installing the app, opening the right
+Getting the screens you want means installing the app, opening the right
 screen, getting it into the right state, placing the widget, configuring it, getting real
 data into it — and only then taking the shot.
 
@@ -49,8 +49,8 @@ bakeshot init
 
 Then tell your coding agent:
 
-> **Bakeshot で App Store 用のスクショを作って**
-> — or, in English, *"make the App Store screenshots with Bakeshot"*
+> **Bakeshot でストア用の画面素材を撮って**
+> — or, in English, *"capture the screens for the store listing with Bakeshot"*
 
 `init` installs a skill into `.claude/skills/bakeshot/`, so the agent reads your models and
 views, writes the scene script, runs the render, fixes whatever crashed, and tells you where

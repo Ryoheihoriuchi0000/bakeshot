@@ -2,7 +2,7 @@
 
 You are editing `Bakeshot/Scenes.swift` in this repository. It decides **which screens
 Bakeshot renders, and in what state**. Bakeshot then builds the app, runs it on the Mac
-as a real iOS binary, and writes PNGs at App Store sizes.
+as a real iOS binary, and writes the screens out as PNGs at store dimensions.
 
 ## The shape
 
