@@ -141,7 +141,10 @@ Xcode breaks this kind of tool roughly once a year — that is what the renewal 
 
 - Xcode is driven while baking, so you cannot use Xcode during a run.
   (`xcodebuild test` cannot launch an iOS-on-Mac test host; the IDE can.)
-- Screens that need network, keychain or a live account crash while rendering.
+- A view crashes while rendering if something it demands is missing — nearly always an
+  environment object, occasionally a force-unwrapped value that isn't there offline.
+  Bakeshot reports the reason and carries on with the rest. Network calls do not crash a
+  render; they simply don't finish, so the screen comes out in its loading state.
   Bakeshot names them and bakes the rest — give them fakes in the scene script.
 - Widget sources are compiled into the test bundle, so a widget that depends on the
   extension's own asset catalog may render without those images.

@@ -93,11 +93,12 @@ the decoration step scales it. Widgets need the full version (`bakeshot status` 
 Bakeshot names every scene it could not build or that crashed while rendering:
 
 - **"引数が要るので外しました"** — the view needs arguments. Pass them explicitly.
-- **"焼いている最中に落ちた"** — the render died. Almost always a missing environment
-  object; sometimes the network or the keychain. Go back to the view's source, list what it
-  reads from the environment, and supply all of it. Bakeshot cannot tell you the reason —
-  the process is gone — so read, do not guess. If it genuinely cannot be rendered offline,
-  drop that scene and say why.
+- **"焼いている最中に落ちた"** — the render died, and Bakeshot prints the reason under the
+  name. Nearly always a missing environment object; sometimes a force-unwrapped value that
+  is nil offline. Supply what the message names and bake again.
+  A view that merely *calls* the network does not crash — the call just doesn't finish, so
+  the screen renders in its loading state. Fix that by handing the view data, not by
+  dropping the scene.
 
 Fix `Bakeshot/Scenes.swift` and run `bakeshot bake` again. Repeat until the set is complete
 or a screen is genuinely un-renderable — then say so plainly.
