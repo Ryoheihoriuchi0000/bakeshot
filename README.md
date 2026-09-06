@@ -7,9 +7,9 @@ https://github.com/user-attachments/assets/6a902e87-bb5d-467f-8c55-96d89f550ac3
 
 ## Without Bakeshot
 
-A store screenshot is only worth taking if the app is showing something good. But to
-photograph a screen, the app has to *actually be* in that state — so you, or the agent you
-asked, has to put it there first:
+Making the screens you want for a listing means installing the app, opening the right
+screen, getting it into the right state, placing the widget, configuring it, getting real
+data into it, then photographing the home screen and cropping.
 
 | The screenshot you want | What you or your agent has to do first |
 |---|---|
@@ -135,12 +135,6 @@ when the run ends — including when the run fails. Nothing is left behind.
 ## Price
 
 Everything above is free: every screen, every state, every language, every device size.
-
-**Widgets are the paid part** — the one screenshot you genuinely cannot take by hand.
-An app screen you can at least reach by tapping. A widget means installing the app,
-placing the widget, configuring it, getting real data into it, photographing the home
-screen and cropping. Bakeshot renders it directly, in the state you asked for, at the
-exact store size.
 
 | | |
 |---|---|
