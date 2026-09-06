@@ -186,7 +186,7 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
                 (box / "SKIP").write_text("\n".join(skips), encoding="utf-8")
             code, out = xcode.osascript([start_s, str(dst), "BakeshotRender"])
             if "not loaded" in out:
-                raise SystemExit("Xcode がプロジェクトを開けませんでした")
+                raise SystemExit("Xcode がプロジェクトを開けませんでした\n  うまくいかない時は、Xcode を一度終了してからやり直してください。")
 
             last, last_change, finished = "", time.time(), False
             deadline = time.time() + (1200 if rounds == 1 else 600)
@@ -206,7 +206,7 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
             xcode.osascript([stop_s, str(dst)])
             time.sleep(3)          # 止まり切る前に次を走らせると、Xcode が受け付けない
             if not box:
-                raise SystemExit("Xcode でテストが始まりませんでした（ビルドが通っていない可能性）")
+                raise SystemExit("Xcode でテストが始まりませんでした（ビルドが通っていない可能性）\n  うまくいかない時は、Xcode を一度終了してからやり直してください。")
 
             done = set()
             for f in sorted(box.glob("*.png")):
@@ -228,7 +228,8 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
                 log(f"✗ {parts[1]} は焼いている最中に"
                     f"{'固まった' if parts[0] == 'TIMEOUT' else '落ちた'}ので外しました", "!")
             elif not last and not done:
-                raise SystemExit(f"Xcode でテストが動きませんでした（{rounds} 回目）")
+                raise SystemExit(f"Xcode でテストが動きませんでした（{rounds} 回目）"
+                             "  うまくいかない時は、Xcode を一度終了してからやり直してください。")
             elif not fresh:
                 tail = ""
                 if (box / "LOG").exists():
