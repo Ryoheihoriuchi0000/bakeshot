@@ -38,16 +38,16 @@ Bakeshot builds your iOS app, runs it on your Mac as a real iOS binary, and rend
 actual SwiftUI views — **in whatever state you ask for.**
 
 That last part is the point. To photograph a screen the usual way, the app has to *actually
-be* in that state:
+be* in that state — so you, or the agent you asked, has to put it there first:
 
-| The screenshot you want | What it costs you today |
+| The screenshot you want | What you or your agent has to do first |
 |---|---|
-| Home screen with a month of history | Wait a month, or type it all in |
-| A seven-day streak | You cannot. Come back in a week |
+| Home screen with a month of history | Wait a month, or enter it all by hand |
+| A seven-day streak | Nothing works. Come back in a week |
 | The paid tier | Buy it, or wire up a sandbox account |
-| The empty state, the error state | Break the app on purpose |
-| The same shots in five languages | Switch the device language and shoot everything again |
-| A widget | Install the app, place the widget, configure it, get data into it, photograph the home screen, crop |
+| The empty state, the error state | Break the app on purpose, then put it back |
+| The same shots in five languages | Switch the device language and reshoot everything, five times |
+| A widget | Install the app, place the widget, configure it, feed it data, photograph the home screen, crop |
 
 Bakeshot builds the state in code and draws the view directly. A month of history is four
 lines. The paid tier is one initialiser. Five languages is one flag.
