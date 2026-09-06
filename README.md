@@ -1,6 +1,6 @@
 # Bakeshot
 
-**Screenshots of your real UI.**
+**Screenshots of your real UI. No simulator. No UI tests.**
 
 https://github.com/user-attachments/assets/6a902e87-bb5d-467f-8c55-96d89f550ac3
 
