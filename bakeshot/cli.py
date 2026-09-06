@@ -4,7 +4,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import __version__, bake as bake_mod, devices, doctor as doctor_mod, license as license_mod, scenes as scenes_mod
+from . import __version__, bake as bake_mod, devices, doctor as doctor_mod, features, license as license_mod, scenes as scenes_mod
 
 
 def find_project(root: Path):
@@ -26,14 +26,14 @@ def save_config(root: Path, cfg):
 
 
 NEXT_STEPS = """
-できました。次はこれをエージェント（Claude Code / Cursor など）に貼ってください。
+用意できました。あとはエージェント（Claude Code / Cursor など）にこう言ってください。
 
-  Bakeshot/AGENT.md を読んで、Bakeshot/Scenes.swift に撮影台本を書いて。
-  ホーム画面はデータが入った状態、設定画面、課金画面を、ライトとダークで。
+  App Store 用のスクショを作って
 
-書けたら:
+スキルを .claude/skills/bakeshot/ に置いたので、エージェントが台本を書いて焼くところまで
+やります。Cursor など Claude Code 以外を使っているなら、代わりにこう言ってください。
 
-  bakeshot bake
+  .claude/skills/bakeshot/SKILL.md を読んで、その通りにやって
 """
 
 
@@ -61,11 +61,11 @@ def cmd_doctor(args):
 
 
 def cmd_bake(args):
+    features.pro()          # 端末の一覧は完全版の有無で変わる
     root = Path(args.path).resolve()
     # 足りないものは、時間を使う前に言う
     if not doctor_mod.report(root, quiet_when_ok=True):
         raise SystemExit(1)
-    license_mod.check_or_exit()
     cfg = load_config(root)
     project = root / cfg["project"] if cfg.get("project") else find_project(root)
     target = args.target or cfg.get("target") or project.stem
@@ -91,6 +91,10 @@ def cmd_activate(args):
 
 
 def cmd_status(args):
+    features.pro()
+    print(("完全版" if features.pro() else "公開版") +
+          f" / 端末サイズ: {', '.join(devices.DEVICES)}" +
+          f" / ウィジェット: {'あり' if features.pro() else 'なし'}")
     print(license_mod.status())
 
 
@@ -112,8 +116,9 @@ def main(argv=None):
     b.add_argument("path", nargs="?", default=".")
     b.add_argument("--target")
     b.add_argument("--locale", action="append", help="言語（繰り返し指定可。例: --locale ja --locale en）")
-    b.add_argument("--device", action="append", choices=list(devices.DEVICES),
-                   help=f"端末サイズ（既定: {devices.DEFAULT}）")
+    b.add_argument("--device", action="append",
+                   help=f"端末サイズ（既定: {devices.DEFAULT}。使えるのは "
+                        f"{', '.join(devices.DEVICES)}）")
     b.add_argument("--out", help="書き出し先（既定: Bakeshot/out）")
     b.add_argument("--bundle-id", help="bundle id を差し替える（他人のプロジェクト用）")
     b.add_argument("--team", help="署名するチーム ID")

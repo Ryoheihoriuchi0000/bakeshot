@@ -1,4 +1,4 @@
-"""試用と鍵。
+"""鍵。
 
 守っているのは機能ではなく「更新が続くこと」。中身が読める以上、確認を消すのは誰にでもできる。
 それでも成立するのは、仕事でリリースを回している人が毎回のスクショ作りを消したいからで、
@@ -12,7 +12,6 @@ import urllib.request
 from datetime import date
 from pathlib import Path
 
-TRIAL_DAYS = 3          # 暦ではなく「実際に焼いた日」を数える
 API = "https://api.lemonsqueezy.com/v1/licenses"
 STORE = Path.home() / ".bakeshot" / "state.json"
 BUY = "https://bakeshot.lemonsqueezy.com"
@@ -61,41 +60,7 @@ def licensed() -> bool:
     return bool(_load().get("license", {}).get("key"))
 
 
-def note_run() -> int:
-    """焼いた日を数える。戻り値は、これまでに使った日数。"""
-    d = _load()
-    days = d.get("used_days", [])
-    today = date.today().isoformat()
-    if today not in days:
-        days.append(today)
-        d["used_days"] = days
-        _save(d)
-    return len(days)
-
-
-def check_or_exit():
-    """焼く前に呼ぶ。試用が残っていれば通し、切れていれば買い方を出して止める。"""
-    if licensed():
-        return
-    used = note_run()
-    left = TRIAL_DAYS - used
-    if left >= 0:
-        if left == 0:
-            print(f"※ お試しは今日で最後です。続けて使うなら {BUY}\n")
-        else:
-            print(f"※ お試し中（残り {left} 日ぶん）。{BUY}\n")
-        return
-    raise SystemExit(
-        f"お試し（{TRIAL_DAYS} 日ぶん）が終わりました。\n"
-        f"  買う:      {BUY}\n"
-        f"  鍵を入れる: bakeshot activate <鍵>\n"
-        f"\n買った版はずっと使えます。年ごとの支払いは、その先の更新のためのものです。")
-
-
 def status() -> str:
-    d = _load()
-    lic = d.get("license")
-    if lic:
-        return f"ライセンス済み（{lic.get('activated_on')} から）"
-    used = len(d.get("used_days", []))
-    return f"お試し中: {used} / {TRIAL_DAYS} 日ぶん使用"
+    lic = _load().get("license")
+    return (f"ライセンス済み（{lic.get('activated_on')} から）" if lic
+            else "ライセンスなし")

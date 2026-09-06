@@ -3,7 +3,7 @@
 #           [bundleIdOverride] [stripExtensions 0/1] [stripEntitlements 0/1] [language] [team]
 require 'xcodeproj'
 require 'fileutils'
-src, dst, test_srcs, host, bundle_override, strip_ext, strip_ent, lang, team, widget_src_dir = ARGV
+src, dst, test_srcs, host, bundle_override, strip_ext, strip_ent, lang, team, widget_src_dir, extra_rb = ARGV
 FileUtils.rm_rf(dst); FileUtils.cp_r(src, dst)
 proj = Xcodeproj::Project.open(dst)
 # 拡張は複製から外すので、拡張のソース一覧は**元のプロジェクト**から読む
@@ -59,41 +59,10 @@ if strip_ext == '1'
   removed.each { |t| t.remove_from_project }
 end
 
-# ウィジェットの View はアプリのモジュールに無いので、`@testable import` では見えない。
-# 拡張ターゲット専用のソースを**テスト側に足す**（アプリと共有しているファイルは既に見えるので足さない）。
-# `@main` は消した写しを使う（テストの中に @main は置けない）。
-if widget_src_dir && !widget_src_dir.empty?
-  app_files = app.source_build_phase.files.map { |f| f.file_ref&.real_path.to_s }.compact
-  exts = proj_orig.targets.select { |t| t.respond_to?(:product_type) &&
-    t.product_type.to_s.include?('app-extension') }
-  require 'fileutils'
-  FileUtils.mkdir_p(widget_src_dir)
-  added = []
-  exts.each do |t|
-    next unless t.respond_to?(:source_build_phase)
-    t.source_build_phase.files.each do |bf|
-      path = bf.file_ref&.real_path.to_s
-      next if path.empty? || !path.end_with?('.swift') || app_files.include?(path)
-      text = File.read(path)
-      # ウィジェット本体（@main / WidgetBundle）は焼くのに要らない
-      text = text.gsub(/^@main\s*$/, '// [bakeshot] @main はテストに置けないので外しました')
-      # 拡張のファイルはアプリの型（Shared/ の Station 等）を使う。テスト側では @testable でしか見えない
-      text = "@testable import #{host.gsub('-', '_')}\n" + text
-      # ウィジェットの環境値はホストが与えるもので、外から渡せない。
-      # 保存プロパティに直して、台本から family を指定できるようにする（private も外す）
-      text = text.gsub(/^([ \t]*)@Environment\(\\\.widgetFamily\)[ \t]+(?:private[ \t]+)?var[ \t]+(\w+)[ \t]*$/,
-                       '\\1var \\2: WidgetFamily = .systemMedium   // [bakeshot] 台本から渡せるようにした')
-      text = text.gsub(/^([ \t]*)@Environment\(\\\.widgetRenderingMode\)[ \t]+(?:private[ \t]+)?var[ \t]+(\w+)[ \t]*$/,
-                       '\\1var \\2: WidgetRenderingMode = .fullColor   // [bakeshot] 台本から渡せるようにした')
-      dst_file = File.join(widget_src_dir, File.basename(path))
-      next if added.include?(dst_file)
-      File.write(dst_file, text)
-      added << dst_file
-    end
-  end
-  refs2 = added.map { |f| group.new_file(f) }
-  test.add_file_references(refs2)
-  puts "widget-sources: #{added.size}"
+# ウィジェットの取り込みは完全版が受け持つ。公開版にはその処理が入っていない。
+if extra_rb && !extra_rb.empty? && File.exist?(extra_rb)
+  # load ではなく eval。load は別のスコープで走るので、ここのローカル変数が見えない
+  eval(File.read(extra_rb), binding, extra_rb)
 end
 
 test.build_configurations.each do |c|

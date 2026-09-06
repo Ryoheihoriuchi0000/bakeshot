@@ -12,19 +12,23 @@ cd MyApp
 bakeshot init
 ```
 
-`init` prints one sentence to paste into your coding agent:
+Then tell your coding agent:
 
-> Read `Bakeshot/AGENT.md` and write the scene script in `Bakeshot/Scenes.swift`.
-> Home screen with data in it, settings, and the paywall, in light and dark.
+> **App Store 用のスクショを作って** — or, in English, *"make the App Store screenshots"*
 
-Your agent writes the script. Then:
+`init` installs a skill into `.claude/skills/bakeshot/`, so the agent reads your models and
+views, writes the scene script, runs the render, fixes whatever crashed, and tells you where
+the images are. You do not have to learn the flags, or the file, or any of this README.
 
-```bash
-bakeshot bake --locale ja --locale en
-```
+<details>
+<summary>Not using Claude Code?</summary>
+
+Point any agent at the skill: *"Read `.claude/skills/bakeshot/SKILL.md` and follow it."*
+Or drive it yourself: edit `Bakeshot/Scenes.swift`, then `bakeshot bake --locale ja --locale en`.
+
+</details>
 
 PNGs land in `Bakeshot/out/<locale>/`, at real store dimensions.
-That is the whole tool: **two commands and one sentence.**
 
 ## What it does
 
@@ -70,14 +74,26 @@ enum BakeshotScenes {
 
 An empty app makes a worthless screenshot. The state is the product.
 
-## How it works
+## Does it touch my project?
 
-1. Copies your `.xcodeproj` to `YourApp-Bakeshot.xcodeproj` and adds an XCTest target
-   hosted by your app. **Your project is never modified.**
-2. Builds it for *My Mac (Designed for iPad)* — your iOS binary, running on macOS.
-   Firebase, UIKit, your fonts and assets are all the real thing.
-3. Renders each scene with `UIHostingController` + `drawHierarchy`.
-4. Collects the PNGs, and names any screen that crashes so the rest still ship.
+**No.** Bakeshot never edits your files, your `.xcodeproj`, or your git history.
+
+To render your views it needs one test target hosted by your app. Rather than add that
+to your project, it works on a hidden throwaway copy of the `.xcodeproj`, and deletes it
+when the run ends — including when the run fails. Nothing is left behind.
+
+<details>
+<summary>What actually happens</summary>
+
+1. Copy `MyApp.xcodeproj` → `.MyApp-bakeshot.xcodeproj` (hidden, temporary, sits next to
+   the original because Xcode projects reference their files by relative path).
+2. Add a test target to the copy, hosted by your app.
+3. Build the copy for *My Mac (Designed for iPad)* — your iOS binary, running on macOS,
+   so Firebase, UIKit, your fonts and assets are all the real thing.
+4. Render each scene with `UIHostingController` + `drawHierarchy`, write PNGs.
+5. Delete the copy.
+
+</details>
 
 ## Requirements
 
@@ -87,22 +103,20 @@ An empty app makes a worthless screenshot. The state is the product.
 
 `bakeshot init` checks all of this and tells you what is missing.
 
-## Device sizes
-
-`--device 6.9` (default, 1320×2868), `6.7`, `6.5`, `6.3`. Repeat the flag for several.
-
 ## Price
 
-Three days of use are free — days you actually run `bake`, not calendar days.
-After that, `bakeshot activate <key>` unlocks it.
+The public version renders at 6.9" (1320×2868). That is enough to ship an iPhone listing,
+and enough to see it work on your own app.
 
 | | |
 |---|---|
-| Solo | **$49 / year** — the version you paid for keeps working forever; renewing buys the next year of updates |
+| Public | free, forever — 6.9" |
+| Full | **$49 / year** — 6.7 / 6.5 / 6.3 as well, and widgets |
 | Team / agency | **$199 / year** — several projects, CI |
 | Launch offer | **$99 once**, first 100 buyers |
 
-Xcode breaks this kind of tool roughly once a year. That is what the renewal pays for.
+The version you paid for keeps working forever; renewing buys the next year of updates.
+Xcode breaks this kind of tool roughly once a year — that is what the renewal pays for.
 
 ## Known limits
 

@@ -9,7 +9,7 @@ import time
 import uuid
 from pathlib import Path
 
-from . import devices, scenes as scenes_mod, xcode
+from . import devices, features, scenes as scenes_mod, xcode
 
 KIT = Path(__file__).parent / "hostkit"
 CONTAINERS = Path.home() / "Library" / "Containers"
@@ -38,6 +38,12 @@ def ensure_scenes(root: Path, module: str, imports: str) -> Path:
     d.mkdir(parents=True, exist_ok=True)
     views = scenes_mod.guess_views(root)
     f.write_text(scenes_mod.draft(module, imports, views), encoding="utf-8")
+    # エージェント用のスキル。置いておけば、利用者は「スクショ作って」で済む
+    skill_src = KIT / "skill" / "SKILL.md"
+    skill_dst = root / ".claude" / "skills" / "bakeshot" / "SKILL.md"
+    if skill_src.exists() and not skill_dst.exists():
+        skill_dst.parent.mkdir(parents=True, exist_ok=True)
+        skill_dst.write_text(skill_src.read_text(encoding="utf-8"), encoding="utf-8")
     for src_name, dst_name in [("agent_guide.md", "AGENT.md")]:
         g = KIT / src_name
         if g.exists():
@@ -49,6 +55,7 @@ def ensure_scenes(root: Path, module: str, imports: str) -> Path:
 def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
          out_root: Path, bundle_id: str = "", strip_ext: bool = True,
          strip_ent: bool = False, team: str = "", keep: bool = False):
+    features.pro()          # 完全版が入っていれば端末とウィジェットが増える
     module = app_target.replace("-", "_")
     imports = "".join(f"#if canImport({m})\nimport {m}\n#endif\n"
                       for m in sorted(scenes_mod.local_package_modules(root)))
@@ -75,22 +82,31 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
     log(f"台本にある {len(names)} 枚を焼きます（{locale} / {device}\"）")
 
     # 1) xcodeproj を複製してテストターゲットを足す
-    dst = project.with_name(project.stem + "-Bakeshot.xcodeproj")
+    # 使い捨ての写し。**君のプロジェクトには一切書き込まない。**
+    # 同じ場所に置くのは、xcodeproj の中のファイル参照が相対パスだから（動かすと全部壊れる）。
+    # 先頭のドットで隠しておき、終わったら消す。
+    dst = project.with_name("." + project.stem + "-bakeshot.xcodeproj")
     xcode.close_project(dst)
     code, out = xcode.run(["/usr/bin/env", "ruby", str(KIT / "add_test_target.rb"),
                            str(project), str(dst),
                            ":".join([str(test_file), str(api_file), str(scenes_file)]),
                            app_target, bundle_id, "1" if strip_ext else "0",
                            "1" if strip_ent else "0", locale, team,
-                           str(work / "widget")], env_extra=xcode.UTF8)
+                           str(work / "widget"), features.widget_support_rb()],
+                          env_extra=xcode.UTF8)
     if code != 0:
+        shutil.rmtree(dst, ignore_errors=True)
         if "cannot load such file -- xcodeproj" in out:
             raise SystemExit("Ruby の xcodeproj gem がありません。`gem install --user-install xcodeproj` を実行してください")
         raise SystemExit(f"xcodeproj の複製に失敗:\n{out[-800:]}")
 
     # 2) 先にビルドだけ通す（Xcode 経由だとコンパイルエラーが読めない）。
     #    引数が要る View が台本に混ざっていたら、その行を外して組み直す
-    dest_id = xcode.mac_destination_id(dst)
+    try:
+        dest_id = xcode.mac_destination_id(dst)
+    except SystemExit:
+        shutil.rmtree(dst, ignore_errors=True)
+        raise
     derived = work / "dd"
     pruned = []
     for attempt in range(1, 5):
@@ -102,6 +118,8 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
                for m in [re.search(r"RenderTests\.swift:(\d+):", l)] if m}
         if not bad or attempt == 4:
             why = " / ".join(re.sub(r"^.*?: error: ", "", l) for l in errs[:4])
+            if not keep:
+                shutil.rmtree(dst, ignore_errors=True)
             raise SystemExit(f"ビルドに失敗しました:\n{why or out[-600:]}")
         lines = test_file.read_text(encoding="utf-8").splitlines()
         for n in sorted(bad, reverse=True):
@@ -188,6 +206,7 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
         xcode.osascript([stop_s, str(dst), "close"])
         if not keep:
             shutil.rmtree(dst, ignore_errors=True)
+        shutil.rmtree(work / "dd", ignore_errors=True)
 
     log(f"{collected} 枚できました → {out_dir_final}", "✓")
     if failed or pruned:
