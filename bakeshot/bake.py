@@ -9,7 +9,7 @@ import time
 import uuid
 from pathlib import Path
 
-from . import devices, features, scenes as scenes_mod, xcode
+from . import devices, scenes as scenes_mod, xcode
 
 KIT = Path(__file__).parent / "hostkit"
 CONTAINERS = Path.home() / "Library" / "Containers"
@@ -114,7 +114,6 @@ def ensure_scenes(root: Path, module: str, imports: str) -> Path:
 def bake(root: Path, project: Path, app_target: str, locales, device: str,
          out_root: Path, bundle_id: str = "", strip_ext: bool = True,
          strip_ent: bool = False, team: str = "", keep: bool = False):
-    features.pro()          # 完全版が入っていれば端末とウィジェットが増える
     if isinstance(locales, str):
         locales = [locales]
     locales = [l for l in locales if l] or ["ja"]
@@ -148,16 +147,8 @@ def bake(root: Path, project: Path, app_target: str, locales, device: str,
 
     log(f"台本にある {len(names)} 枚を焼きます（{'・'.join(locales)} / {device}\"）"
         + (f" → {len(names) * len(locales)} 枚" if len(locales) > 1 else ""))
-    # ウィジェットは公開版に処理が無い。台本に混ざっていると、
-    # ウィジェットの型が見つからずビルドごと落ちる。**先に、はっきり止める。**
     if ".widget" in scenes_file.read_text(encoding="utf-8"):
         _used_widgets = True
-    if not features.pro() and _used_widgets:
-        raise SystemExit(
-            "台本にウィジェットがあります。ウィジェットは完全版の機能です。\n"
-            f"  買う:   {'https://bakeshot.lemonsqueezy.com'}\n"
-            "  今すぐ焼くなら: Bakeshot/Scenes.swift から size: .widget… の行と、\n"
-            "  そこで使っている下ごしらえを消してください（アプリの画面だけになります）。")
 
     # 1) xcodeproj を複製してテストターゲットを足す
     # 使い捨ての写し。**君のプロジェクトには一切書き込まない。**
@@ -171,7 +162,7 @@ def bake(root: Path, project: Path, app_target: str, locales, device: str,
                            app_target, bundle_id, "1" if strip_ext else "0",
                            "1" if strip_ent else "0",
                            locales[0] if len(locales) == 1 else "", team,
-                           str(work / "widget"), features.widget_support_rb()],
+                           str(work / "widget"), str(KIT / "widget_support.rb")],
                           env_extra=xcode.UTF8)
     if code != 0:
         shutil.rmtree(dst, ignore_errors=True)

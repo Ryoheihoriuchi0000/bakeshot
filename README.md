@@ -126,17 +126,8 @@ when the run ends — including when the run fails. Nothing is left behind.
 
 ## Price
 
-Everything above is free: every screen, every state, every language, every device size.
-
-| | |
-|---|---|
-| Public | free, forever — app screens |
-| Widgets | **$49 / year** |
-| Team / agency | **$199 / year** — several projects, CI |
-| Launch offer | **$99 once**, first 100 buyers |
-
-The version you paid for keeps working forever; renewing buys the next year of updates.
-Xcode breaks this kind of tool roughly once a year — that is what the renewal pays for.
+Free, all of it. Every screen, every state, every language, every device size, widgets
+included. MIT.
 
 ## Known limits
 

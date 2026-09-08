@@ -69,7 +69,7 @@ if strip_ext == '1'
   removed.each { |t| t.remove_from_project }
 end
 
-# ウィジェットの取り込みは完全版が受け持つ。公開版にはその処理が入っていない。
+# ウィジェットのソースをテスト側へ取り込む（widget_support.rb）。
 if extra_rb && !extra_rb.empty? && File.exist?(extra_rb)
   # load ではなく eval。load は別のスコープで走るので、ここのローカル変数が見えない
   eval(File.read(extra_rb), binding, extra_rb)

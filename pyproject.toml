@@ -1,6 +1,6 @@
 [project]
 name = "bakeshot"
-version = "0.2.0"
+version = "0.3.0"
 description = "Capture the same UI your users see, without a simulator or a device."
 readme = "README.md"
 license = { text = "MIT" }

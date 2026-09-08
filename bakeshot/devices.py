@@ -15,7 +15,7 @@ DEFAULT = "6.9"
 
 
 def register(name, spec):
-    """完全版から端末を足す。"""
+    """端末を足す。"""
     DEVICES[name] = spec
 
 

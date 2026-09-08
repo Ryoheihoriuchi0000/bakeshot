@@ -4,7 +4,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import __version__, bake as bake_mod, devices, doctor as doctor_mod, features, license as license_mod, scenes as scenes_mod, usage as usage_mod
+from . import __version__, bake as bake_mod, devices, doctor as doctor_mod, scenes as scenes_mod, usage as usage_mod
 
 
 def find_project(root: Path):
@@ -61,7 +61,6 @@ def cmd_doctor(args):
 
 
 def cmd_bake(args):
-    features.pro()          # 端末の一覧は完全版の有無で変わる
     root = Path(args.path).resolve()
     # 足りないものは、時間を使う前に言う
     if not doctor_mod.report(root, quiet_when_ok=True):
@@ -94,11 +93,6 @@ def cmd_bake(args):
                        widgets=bake_mod.used_widgets())
 
 
-def cmd_activate(args):
-    name = license_mod.activate(args.key.strip())
-    print(f"{name} を有効にしました。ありがとうございます。")
-
-
 def cmd_usage(args):
     if args.switch == "off":
         usage_mod.set_enabled(False)
@@ -111,11 +105,9 @@ def cmd_usage(args):
 
 
 def cmd_status(args):
-    features.pro()
-    print(("完全版" if features.pro() else "公開版") +
-          f" / 端末サイズ: {', '.join(devices.DEVICES)}" +
-          f" / ウィジェット: {'あり' if features.pro() else 'なし'}")
-    print(license_mod.status())
+    print(f"Bakeshot {__version__} / 端末サイズ: {', '.join(devices.DEVICES)}"
+          " / ウィジェット: あり")
+    print(f"回数の送信: {usage_mod.state()}")
 
 
 def main(argv=None):
@@ -150,15 +142,11 @@ def main(argv=None):
     b.add_argument("--keep-project", action="store_true", help="作った *-Bakeshot.xcodeproj を消さない")
     b.set_defaults(func=cmd_bake)
 
-    a = sub.add_parser("activate", help="買った鍵を入れる")
-    a.add_argument("key")
-    a.set_defaults(func=cmd_activate)
-
     u = sub.add_parser("usage", help="焼いた回数を送るかどうか")
     u.add_argument("switch", nargs="?", choices=["on", "off"])
     u.set_defaults(func=cmd_usage)
 
-    st = sub.add_parser("status", help="お試しの残りとライセンスの状態")
+    st = sub.add_parser("status", help="使える端末サイズと設定を出す")
     st.set_defaults(func=cmd_status)
 
     args = p.parse_args(argv)

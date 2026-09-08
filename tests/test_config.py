@@ -1,4 +1,4 @@
-"""設定ファイルの読み書きと、公開版でウィジェットを止める判断。"""
+"""設定ファイルの読み書きと、台本にウィジェットがあるかの判定。"""
 import json
 import tempfile
 import unittest
@@ -30,9 +30,8 @@ class Config(unittest.TestCase):
             self.assertTrue(text.endswith("\n"))
 
 
-class WidgetGate(unittest.TestCase):
-    """公開版に完全版の処理は入っていない。台本にウィジェットがあれば、
-    ビルドで死ぬ前にはっきり止める。"""
+class WidgetDetect(unittest.TestCase):
+    """台本にウィジェットがあれば、拡張のソースを取り込む必要がある。その判定。"""
 
     def test_a_widget_size_is_detected(self):
         script = 'shot("w", size: .widgetLarge) { W() }'

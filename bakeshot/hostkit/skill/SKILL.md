@@ -69,8 +69,8 @@ Rules:
 - Keep the trailing `.flatMap { $0 }`; wrap lone `shot(...)` calls as `[shot(...)]` when mixing.
 - Widgets need an explicit size: `.widgetSmall` / `.widgetMedium` / `.widgetLarge` /
   `.widgetExtraLarge`. Build the entry the way the app's `TimelineProvider` does.
-  **Widgets require the full version.** Run `bakeshot status` first — if it says 公開版,
-  leave widgets out of the script and tell the user they are a paid feature.
+  The widget's own sources are pulled into the test target, so its views are visible
+  even though they live in an extension.
 - Every language is baked in one run, so the script body runs once per language.
   Use `Bakeshot.L(ja, en)` when demo data itself should differ, and put any
   language switch of the app's own (`Localizer.setLanguage(...)`) **inside** the
@@ -97,7 +97,7 @@ All the languages are baked in a single Xcode run. If the app localises through
 to rebuild per language instead.
 
 Add `--device 6.9 --device 6.5` for more sizes — though one size is usually enough, since
-the decoration step scales it. Widgets need the full version (`bakeshot status` says which).
+the decoration step scales it.
 
 ## 4. Fix what failed, then bake again
 
