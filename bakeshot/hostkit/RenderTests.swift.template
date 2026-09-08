@@ -62,6 +62,9 @@ final class RenderTests: XCTestCase {
                 .transaction { $0.animation = nil }
                 .frame(width: size.width, height: size.height)
                 .environment(\.locale, locale.isEmpty ? Locale.current : Locale(identifier: locale))
+                // ここのウィンドウは UIWindowScene に紐づいていないので、放っておくと
+                // SwiftUI は scenePhase を .background と答える。前面にいる時の見た目で焼く
+                .environment(\.scenePhase, .active)
                 .environment(\.colorScheme, dark ? .dark : .light))
             let host = UIHostingController(rootView: root)
             host.overrideUserInterfaceStyle = dark ? .dark : .light
