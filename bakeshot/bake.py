@@ -111,10 +111,13 @@ def ensure_scenes(root: Path, module: str, imports: str) -> Path:
     return f
 
 
-def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
+def bake(root: Path, project: Path, app_target: str, locales, device: str,
          out_root: Path, bundle_id: str = "", strip_ext: bool = True,
          strip_ent: bool = False, team: str = "", keep: bool = False):
     features.pro()          # 完全版が入っていれば端末とウィジェットが増える
+    if isinstance(locales, str):
+        locales = [locales]
+    locales = [l for l in locales if l] or ["ja"]
     module = scenes_mod.module_name(app_target)
     # Swift の識別子にならない名前（protoc-gen-swift のようなハイフン入り）は import できない
     _ok = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -133,7 +136,9 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
 
     w, h, top, bottom, _px = devices.metrics(device)
     test = (KIT / "RenderTests.swift.template").read_text(encoding="utf-8")
+    swift_locales = "[" + ", ".join('"%s"' % l.replace('"', '') for l in locales) + "]"
     for k, v in [("__IMPORTS__", imports), ("__MODULE__", module), ("__TOKEN__", token),
+                 ("__LOCALES__", swift_locales),
                  ("__W__", str(w)), ("__H__", str(h)), ("__TOP__", str(top)), ("__BOTTOM__", str(bottom))]:
         test = test.replace(k, v)
     test_file = work / "RenderTests.swift"
@@ -141,7 +146,8 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
     api_file = work / "BakeshotSceneAPI.swift"
     api_file.write_text((KIT / "BakeshotSceneAPI.swift.template").read_text(encoding="utf-8"), encoding="utf-8")
 
-    log(f"台本にある {len(names)} 枚を焼きます（{locale} / {device}\"）")
+    log(f"台本にある {len(names)} 枚を焼きます（{'・'.join(locales)} / {device}\"）"
+        + (f" → {len(names) * len(locales)} 枚" if len(locales) > 1 else ""))
     # ウィジェットは公開版に処理が無い。台本に混ざっていると、
     # ウィジェットの型が見つからずビルドごと落ちる。**先に、はっきり止める。**
     if ".widget" in scenes_file.read_text(encoding="utf-8"):
@@ -163,7 +169,8 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
                            str(project), str(dst),
                            ":".join([str(test_file), str(api_file), str(scenes_file)]),
                            app_target, bundle_id, "1" if strip_ext else "0",
-                           "1" if strip_ent else "0", locale, team,
+                           "1" if strip_ent else "0",
+                           locales[0] if len(locales) == 1 else "", team,
                            str(work / "widget"), features.widget_support_rb()],
                           env_extra=xcode.UTF8)
     if code != 0:
@@ -206,10 +213,11 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
 
     # 3) Xcode に走らせ、進捗ファイルで打ち切る。
     #    落ちる View があるとテストの完了が返ってこないので、Xcode の完了は当てにしない。
-    out_dir_final = out_root / locale
-    out_dir_final.mkdir(parents=True, exist_ok=True)
+    for loc in locales:
+        (out_root / loc).mkdir(parents=True, exist_ok=True)
     remaining = [n for n in names if n not in pruned]
     failed, collected, rounds = [], 0, 0
+    got = {}                # 絵の名前 → 焼けた言語。全部そろって初めて「済」
     start_s = str(KIT / "start_test.applescript")
     stop_s = str(KIT / "stop_test.applescript")
     try:
@@ -219,7 +227,7 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
                 else f"残り {len(remaining)} 枚でもう一周（{rounds} 回目）")
             box = find_out_dir(token)
             if box:
-                for f in ("STATE", "LOG", "STDERR"):
+                for f in ("STATE", "LOG", "STDERR", "LOCALE"):
                     (box / f).unlink(missing_ok=True)
                 # 落ちた絵は飛ばす。ソースではなくこのファイルで伝える（再ビルドを起こさない）
                 # 撮影側は _light / _dark を落とした名前で見ている。合わせないと素通りする
@@ -249,12 +257,14 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
             if not box:
                 raise SystemExit("Xcode でテストが始まりませんでした（ビルドが通っていない可能性）\n  うまくいかない時は、Xcode を一度終了してからやり直してください。")
 
-            done = set()
-            for f in sorted(box.glob("*.png")):
-                shutil.copy2(f, out_dir_final / f.name)
-                f.unlink()
-                collected += 1
-                done.add(f.stem)
+            for loc in locales:
+                sub = box / loc
+                for f in (sorted(sub.glob("*.png")) if sub.is_dir() else []):
+                    shutil.copy2(f, out_root / loc / f.name)
+                    f.unlink()
+                    collected += 1
+                    got.setdefault(f.stem, set()).add(loc)
+            done = {n for n, ls in got.items() if len(ls) == len(locales)}
             fresh = [n for n in remaining if n in done]
             for n in fresh:
                 log(f"✓ {n}", "")
@@ -267,7 +277,8 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
                 remaining.remove(parts[1])
                 failed.append(parts[1])
                 why = crash_reason(box)
-                log(f"✗ {parts[1]} は焼いている最中に"
+                at = (box / "LOCALE").read_text(encoding="utf-8").strip() if (box / "LOCALE").exists() else ""
+                log(f"✗ {parts[1]}{f'（{at}）' if at and len(locales) > 1 else ''} は焼いている最中に"
                     f"{'固まった' if parts[0] == 'TIMEOUT' else '落ちた'}ので外しました"
                     + (f"\n   {why}" if why else ""), "!")
             elif not last and not done:
@@ -287,7 +298,8 @@ def bake(root: Path, project: Path, app_target: str, locale: str, device: str,
             shutil.rmtree(dst, ignore_errors=True)
         shutil.rmtree(work / "dd", ignore_errors=True)
 
-    log(f"{collected} 枚できました → {out_dir_final}", "✓")
+    log(f"{collected} 枚できました → {out_root}"
+        + (f"/<{'・'.join(locales)}>" if len(locales) > 1 else f"/{locales[0]}"), "✓")
     if failed or pruned:
         log(f"焼けなかった: {', '.join(sorted(set(failed + pruned)))}", "!")
     return collected

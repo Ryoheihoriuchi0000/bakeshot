@@ -73,10 +73,13 @@ def cmd_bake(args):
     devs = args.device or cfg.get("devices") or [devices.DEFAULT]
     out_root = Path(args.out).resolve() if args.out else root / "Bakeshot" / "out"
     total = 0
+    # 言語は 1 回の実行の中で切り替える。ビルドと Xcode の起動が言語の数だけ要らなくなる。
+    # NSLocalizedString を直に呼ぶアプリなど、切り替わらない時は --locale-per-run で元の動きに戻せる
+    groups = [[l] for l in locales] if args.locale_per_run else [locales]
     for dev in devs:
-        for loc in locales:
+        for group in groups:
             sub = out_root / dev if len(devs) > 1 else out_root
-            total += bake_mod.bake(root, project, target, loc, dev, sub,
+            total += bake_mod.bake(root, project, target, group, dev, sub,
                                    bundle_id=args.bundle_id or cfg.get("bundleId", ""),
                                    strip_ext=not args.keep_extensions,
                                    # 既定で剥がす。残すと複製が本物の App Group を開き、
@@ -133,6 +136,8 @@ def main(argv=None):
     b.add_argument("path", nargs="?", default=".")
     b.add_argument("--target")
     b.add_argument("--locale", action="append", help="言語（繰り返し指定可。例: --locale ja --locale en）")
+    b.add_argument("--locale-per-run", action="store_true",
+                   help="言語ごとにビルドし直す（切り替わらないアプリ向け。遅い）")
     b.add_argument("--device", action="append",
                    help=f"端末サイズ（既定: {devices.DEFAULT}。使えるのは "
                         f"{', '.join(devices.DEVICES)}）")

@@ -48,6 +48,7 @@ final class RenderTests: XCTestCase {
             .components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty })
 
         func bake(_ name: String, dark: Bool, size sizeSpec: BakeshotSize = .phone,
+                  into dir: URL, locale: String,
                   @ViewBuilder _ content: () -> some View) {
             let base = name.replacingOccurrences(of: "_light", with: "").replacingOccurrences(of: "_dark", with: "")
             if skip.contains(base) { return }
@@ -60,6 +61,7 @@ final class RenderTests: XCTestCase {
             let root = AnyView(content()
                 .transaction { $0.animation = nil }
                 .frame(width: size.width, height: size.height)
+                .environment(\.locale, locale.isEmpty ? Locale.current : Locale(identifier: locale))
                 .environment(\.colorScheme, dark ? .dark : .light))
             let host = UIHostingController(rootView: root)
             host.overrideUserInterfaceStyle = dark ? .dark : .light
@@ -94,13 +96,20 @@ final class RenderTests: XCTestCase {
                 // ナビゲーションバーの題などは layer.render では出ない。画面更新込みで描く
                 host.view.drawHierarchy(in: CGRect(origin: .zero, size: size), afterScreenUpdates: true)
             }
-            try? img.pngData()?.write(to: out.appendingPathComponent("\(name).png"))
+            try? img.pngData()?.write(to: dir.appendingPathComponent("\(name).png"))
             window.isHidden = true
         }
 
-        // 撮影台本（Bakeshot/Scenes.swift）に並んでいるぶんを、上から焼く
-        for scene in BakeshotScenes.scenes {
-            bake(scene.name, dark: scene.dark, size: scene.size) { scene.body() }
+        // 撮影台本（Bakeshot/Scenes.swift）に並んでいるぶんを、言語 × 上から順に焼く。
+        // Xcode の起動とビルドは 1 回で済ませたいので、言語の切り替えはこの中でやる
+        for loc in __LOCALES__ {
+            BakeshotRuntime.shared.locale = loc
+            try? loc.write(to: out.appendingPathComponent("LOCALE"), atomically: true, encoding: .utf8)
+            let dir = out.appendingPathComponent(loc)
+            try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            for scene in BakeshotScenes.scenes {
+                bake(scene.name, dark: scene.dark, size: scene.size, into: dir, locale: loc) { scene.body() }
+            }
         }
         mark("FINISHED")
     }

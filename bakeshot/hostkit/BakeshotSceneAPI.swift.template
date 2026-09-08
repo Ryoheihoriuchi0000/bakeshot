@@ -52,10 +52,18 @@ public func shotBoth<V: View>(_ name: String, size: BakeshotSize = .phone,
      shot("\(name)_dark", dark: true, size: size, body)]
 }
 
+/// Bakeshot が焼いている最中に、いまの言語を入れておく箱。台本からは `Bakeshot.locale` を見てください。
+public final class BakeshotRuntime: @unchecked Sendable {
+    public static let shared = BakeshotRuntime()
+    public var locale: String = ""
+}
+
 /// いま焼いている言語（"ja" / "en" など）。台本の中で見せる文言を出し分けたい時に使う。
 public enum Bakeshot {
     public static var locale: String {
-        ProcessInfo.processInfo.environment["BAKESHOT_LOCALE"]
+        let now = BakeshotRuntime.shared.locale
+        if !now.isEmpty { return now }
+        return ProcessInfo.processInfo.environment["BAKESHOT_LOCALE"]
             ?? (Locale.preferredLanguages.first.map { String($0.prefix(2)) } ?? "ja")
     }
     public static var isJa: Bool { locale.hasPrefix("ja") }

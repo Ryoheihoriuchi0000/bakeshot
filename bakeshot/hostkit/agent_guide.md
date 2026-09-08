@@ -47,12 +47,28 @@ flattering data: a few days of history, a streak in progress, a chart with shape
 
 ## Language
 
-Bakeshot renders once per locale. Use `Bakeshot.L(ja, en)` when the demo data itself
-should differ per language:
+Every locale is rendered in one run: Bakeshot walks the script once per language,
+setting `Bakeshot.locale` before each pass. SwiftUI's own `Text("key")` follows along,
+because the locale is set on the view's environment.
+
+Use `Bakeshot.L(ja, en)` when the demo data itself should differ per language:
 
 ```swift
 shotBoth("home") { HomeView().environmentObject(store(title: Bakeshot.L("勉強", "Study"))) }
 ```
+
+If the app switches language through its own manager, call it **inside the scene body**
+— it runs again for every language:
+
+```swift
+shotBoth("home") {
+    Localizer.setLanguage(Bakeshot.isJa ? .ja : .en)   // 各言語で呼び直される
+    return HomeView()
+}
+```
+
+Apps that read the process language instead (`NSLocalizedString`, `Bundle.main`) will not
+switch mid-run. Those need `bakeshot bake --locale-per-run`, which rebuilds per language.
 
 ## Rules
 

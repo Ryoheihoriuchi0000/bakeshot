@@ -71,7 +71,10 @@ Rules:
   `.widgetExtraLarge`. Build the entry the way the app's `TimelineProvider` does.
   **Widgets require the full version.** Run `bakeshot status` first — if it says 公開版,
   leave widgets out of the script and tell the user they are a paid feature.
-- Use `Bakeshot.L(ja, en)` when demo data itself should differ per language.
+- Every language is baked in one run, so the script body runs once per language.
+  Use `Bakeshot.L(ja, en)` when demo data itself should differ, and put any
+  language switch of the app's own (`Localizer.setLanguage(...)`) **inside** the
+  scene body so it runs again for each pass.
 - Never edit the app's own source to make a scene work. Everything belongs in this file.
 - Never call a save, a sync or anything else that persists. The copy is built without
   entitlements so it cannot reach the real store, but a scene that writes to
@@ -88,6 +91,10 @@ then build them here. An empty screen is a wasted screenshot.
 ```bash
 bakeshot bake --locale ja --locale en
 ```
+
+All the languages are baked in a single Xcode run. If the app localises through
+`NSLocalizedString` / `Bundle.main` and the text does not switch, add `--locale-per-run`
+to rebuild per language instead.
 
 Add `--device 6.9 --device 6.5` for more sizes — though one size is usually enough, since
 the decoration step scales it. Widgets need the full version (`bakeshot status` says which).

@@ -66,7 +66,8 @@ Or drive it yourself: edit `Bakeshot/Scenes.swift`, then `bakeshot bake --locale
 
 </details>
 
-PNGs land in `Bakeshot/out/<locale>/`, at real store dimensions.
+PNGs land in `Bakeshot/out/<locale>/`, at real store dimensions. Every language is
+baked in a single Xcode run — the build happens once, not once per language.
 
 ## The scene script
 
