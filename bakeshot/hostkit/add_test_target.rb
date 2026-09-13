@@ -118,8 +118,13 @@ proj.targets.each do |t|
     c.build_settings['TARGETED_DEVICE_FAMILY'] = '1,2' if fam.include?('7')
     c.build_settings['DEVELOPMENT_TEAM'] = team
     c.build_settings['CODE_SIGN_STYLE'] = 'Automatic'
+    # 捨てる複製のためにインデックスを書かない（ビルドが軽くなる）
+    c.build_settings['COMPILER_INDEX_STORE_ENABLE'] = 'NO'
   end
 end
+# 複製は毎回作り直すので、足したターゲットやファイルの ID が毎回変わると
+# Xcode が別物とみなしてビルドをやり直す。ID を中身から決めて、前回と同じにする
+proj.predictabilize_uuids
 proj.save
 
 # 元のスキームは持ち込まない。消したターゲット（Mac 版・watch 版・拡張）のスキームが残ると、

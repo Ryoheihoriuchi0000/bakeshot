@@ -177,10 +177,9 @@ def bake(root: Path, project: Path, app_target: str, locales, device: str,
     except SystemExit:
         shutil.rmtree(dst, ignore_errors=True)
         raise
-    derived = work / "dd"
     pruned = []
     for attempt in range(1, 5):
-        code, out = xcode.build_for_testing(dst, dest_id, derived)
+        code, out = xcode.build_for_testing(dst, dest_id)
         if code == 0:
             break
         errs = error_lines(out)
@@ -287,7 +286,6 @@ def bake(root: Path, project: Path, app_target: str, locales, device: str,
         xcode.osascript([stop_s, str(dst), "close"])
         if not keep:
             shutil.rmtree(dst, ignore_errors=True)
-        shutil.rmtree(work / "dd", ignore_errors=True)
 
     log(f"{collected} 枚できました → {out_root}"
         + (f"/<{'・'.join(locales)}>" if len(locales) > 1 else f"/{locales[0]}"), "✓")

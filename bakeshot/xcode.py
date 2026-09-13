@@ -52,9 +52,11 @@ def mac_destination_id(project: Path, scheme: str = "BakeshotRender") -> str:
         "Apple silicon の Mac と、iOS を対象にしたアプリのターゲットが要ります。")
 
 
-def build_for_testing(project: Path, dest_id: str, derived: Path, scheme: str = "BakeshotRender"):
+def build_for_testing(project: Path, dest_id: str, scheme: str = "BakeshotRender"):
+    # -derivedDataPath は付けない。Xcode 本体と同じ既定の DerivedData に書くと、
+    # この後 Xcode が走らせるテストはビルド済みのものを使い回せる（2 回ビルドしない）。
+    # 複製の置き場所は毎回同じなので、次に焼く時も差分ビルドで済む
     return run(["/usr/bin/xcrun", "xcodebuild", "build-for-testing",
                 "-project", str(project), "-scheme", scheme,
                 "-destination", f"platform=macOS,arch=arm64,id={dest_id}",
-                "-derivedDataPath", str(derived),
                 "-allowProvisioningUpdates", "-quiet"])
