@@ -136,6 +136,10 @@ scheme = Xcodeproj::XCScheme.new
 scheme.add_build_target(app)
 scheme.add_build_target(test, false)
 scheme.add_test_target(test)
+# テストにデバッガを付けない（xcodeproj の既定は LLDB）。付けると lldb-rpc-server が
+# 焼いている間ずっと CPU を使い、接続待ちで起動も遅くなる。スキームの「Debug executable」を外すのと同じ
+scheme.test_action.xml_element.attributes['selectedDebuggerIdentifier'] = ''
+scheme.test_action.xml_element.attributes['selectedLauncherIdentifier'] = 'Xcode.IDEFoundation.Launcher.PosixSpawn'
 if lang && !lang.empty?
   # アプリの言語。テスト実行時の Application Language に相当する
   scheme.test_action.xml_element.attributes['language'] = lang
